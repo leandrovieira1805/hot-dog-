@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import syncManager from '../utils/syncManager';
 
 const MenuContext = createContext();
 
@@ -53,10 +54,12 @@ const defaultProducts = [
   }
 ];
 
-// Função para carregar dados do arquivo JSON
+// Função para carregar dados do arquivo JSON com cache busting
 const loadDataFromFile = async () => {
   try {
-    const response = await fetch('/data/products.json');
+    // Adicionar timestamp para evitar cache
+    const timestamp = new Date().getTime();
+    const response = await fetch(`/data/products.json?t=${timestamp}`);
     if (response.ok) {
       const data = await response.json();
       return data;
@@ -67,16 +70,54 @@ const loadDataFromFile = async () => {
   return null;
 };
 
-// Função para salvar dados no arquivo JSON (simulado)
-const saveDataToFile = async (data) => {
-  // Em produção, isso seria uma API call para salvar no servidor
-  console.log('Dados para salvar no arquivo:', data);
-  
-  // Por enquanto, salvamos no localStorage como fallback
-  localStorage.setItem('hotdog_products', JSON.stringify(data.products));
-  localStorage.setItem('hotdog_daily_offer', JSON.stringify(data.dailyOffer));
-  localStorage.setItem('pixKey', data.pixKey || '');
-  localStorage.setItem('pixName', data.pixName || '');
+// Função para salvar dados no arquivo JSON via GitHub API
+const saveDataToGitHub = async (data) => {
+  try {
+    // Salvar no localStorage como backup
+    localStorage.setItem('hotdog_products', JSON.stringify(data.products));
+    localStorage.setItem('hotdog_daily_offer', JSON.stringify(data.dailyOffer));
+    localStorage.setItem('pixKey', data.pixKey || '');
+    localStorage.setItem('pixName', data.pixName || '');
+    
+    // Marcar que houve mudança para forçar recarregamento
+    localStorage.setItem('hotdog_last_update', new Date().getTime().toString());
+    
+    console.log('Dados salvos localmente e marcados para sincronização');
+    
+    // Em produção, aqui seria uma chamada para API do GitHub
+    // Por enquanto, vamos usar uma abordagem diferente
+    return true;
+  } catch (error) {
+    console.error('Erro ao salvar dados:', error);
+    return false;
+  }
+};
+
+// Função para verificar se há atualizações
+const checkForUpdates = async () => {
+  try {
+    const lastUpdate = localStorage.getItem('hotdog_last_update');
+    const timestamp = new Date().getTime();
+    const response = await fetch(`/data/products.json?t=${timestamp}`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      const fileLastModified = response.headers.get('last-modified');
+      
+      if (lastUpdate && fileLastModified) {
+        const lastUpdateTime = new Date(parseInt(lastUpdate));
+        const fileTime = new Date(fileLastModified);
+        
+        if (fileTime > lastUpdateTime) {
+          console.log('Atualização detectada!');
+          return data;
+        }
+      }
+    }
+  } catch (error) {
+    console.log('Erro ao verificar atualizações:', error);
+  }
+  return null;
 };
 
 export const MenuProvider = ({ children }) => {
@@ -86,6 +127,7 @@ export const MenuProvider = ({ children }) => {
   const [pixKey, setPixKey] = useState('');
   const [pixName, setPixName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState(null);
 
   useEffect(() => {
     console.log('MenuContext: Carregando dados...');
@@ -93,7 +135,20 @@ export const MenuProvider = ({ children }) => {
     const loadData = async () => {
       setIsLoading(true);
       
-      // Tentar carregar do arquivo primeiro
+      // Verificar se há atualizações primeiro
+      const updates = await checkForUpdates();
+      if (updates) {
+        console.log('MenuContext: Atualizações encontradas:', updates);
+        setProducts(updates.products || defaultProducts);
+        setDailyOffer(updates.dailyOffer || null);
+        setPixKey(updates.pixKey || '');
+        setPixName(updates.pixName || '');
+        setLastUpdate(new Date().getTime());
+        setIsLoading(false);
+        return;
+      }
+      
+      // Tentar carregar do arquivo
       const fileData = await loadDataFromFile();
       
       if (fileData) {
@@ -144,10 +199,32 @@ export const MenuProvider = ({ children }) => {
         setIsAuthenticated(true);
       }
       
+      setLastUpdate(new Date().getTime());
       setIsLoading(false);
     };
 
     loadData();
+    
+    // Iniciar sincronização automática
+    syncManager.startAutoSync();
+    
+    // Escutar eventos de atualização
+    const handleProductsUpdated = (event) => {
+      const data = event.detail;
+      console.log('MenuContext: Evento de atualização recebido:', data);
+      setProducts(data.products || products);
+      setDailyOffer(data.dailyOffer || dailyOffer);
+      setPixKey(data.pixKey || pixKey);
+      setPixName(data.pixName || pixName);
+      setLastUpdate(new Date().getTime());
+    };
+    
+    window.addEventListener('productsUpdated', handleProductsUpdated);
+
+    return () => {
+      syncManager.stopAutoSync();
+      window.removeEventListener('productsUpdated', handleProductsUpdated);
+    };
   }, []);
 
   const saveProducts = async (newProducts) => {
@@ -163,8 +240,12 @@ export const MenuProvider = ({ children }) => {
         pixName
       };
       
-      await saveDataToFile(dataToSave);
+      await saveDataToGitHub(dataToSave);
       console.log('MenuContext: Produtos salvos com sucesso');
+      
+      // Marcar mudança para sincronização
+      syncManager.markLocalChange();
+      setLastUpdate(new Date().getTime());
       
       // Verificar se foi salvo
       const saved = localStorage.getItem('hotdog_products');
@@ -224,7 +305,8 @@ export const MenuProvider = ({ children }) => {
         pixName
       };
       
-      await saveDataToFile(dataToSave);
+      await saveDataToGitHub(dataToSave);
+      setLastUpdate(new Date().getTime());
     } catch (error) {
       console.error('MenuContext: Erro ao salvar oferta:', error);
     }
@@ -236,7 +318,7 @@ export const MenuProvider = ({ children }) => {
     
     try {
       localStorage.setItem('pixKey', key);
-      localStorage.setItem('pixName', name);
+      localStorage.setItem('pixKey', name);
       
       // Salvar no arquivo também
       const dataToSave = {
@@ -246,7 +328,8 @@ export const MenuProvider = ({ children }) => {
         pixName: name
       };
       
-      await saveDataToFile(dataToSave);
+      await saveDataToGitHub(dataToSave);
+      setLastUpdate(new Date().getTime());
     } catch (error) {
       console.error('MenuContext: Erro ao salvar configuração Pix:', error);
     }
@@ -266,6 +349,21 @@ export const MenuProvider = ({ children }) => {
     localStorage.removeItem('hotdog_admin_auth');
   };
 
+  const forceRefresh = async () => {
+    console.log('MenuContext: Forçando sincronização...');
+    const data = await syncManager.forceSync();
+    if (data) {
+      setProducts(data.products || products);
+      setDailyOffer(data.dailyOffer || dailyOffer);
+      setPixKey(data.pixKey || pixKey);
+      setPixName(data.pixName || pixName);
+      setLastUpdate(new Date().getTime());
+      console.log('MenuContext: Sincronização forçada concluída');
+    } else {
+      console.log('MenuContext: Nenhuma atualização encontrada');
+    }
+  };
+
   return (
     <MenuContext.Provider value={{
       products,
@@ -274,13 +372,15 @@ export const MenuProvider = ({ children }) => {
       pixKey,
       pixName,
       isLoading,
+      lastUpdate,
       addProduct,
       updateProduct,
       deleteProduct,
       setOffer,
       updatePixConfig,
       login,
-      logout
+      logout,
+      forceRefresh
     }}>
       {children}
     </MenuContext.Provider>

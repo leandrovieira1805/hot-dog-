@@ -10,11 +10,13 @@ const AdminPanel = () => {
     isAuthenticated, 
     pixKey,
     pixName,
+    lastUpdate,
     addProduct, 
     updateProduct, 
     deleteProduct, 
     setOffer, 
     updatePixConfig,
+    forceRefresh,
     logout 
   } = useMenu();
   
@@ -415,6 +417,35 @@ const AdminPanel = () => {
             )}
           </div>
         )}
+      </div>
+      
+      {/* Botão de Sincronização */}
+      <div style={{marginTop:'2rem', padding:'1rem', background:'#232323', borderRadius:'12px', textAlign:'center'}}>
+        <button 
+          onClick={forceRefresh} 
+          style={{
+            background:'#4CAF50', 
+            color:'white', 
+            border:'none', 
+            padding:'12px 24px', 
+            borderRadius:'8px', 
+            cursor:'pointer',
+            fontSize:'16px',
+            fontWeight:'bold'
+          }}
+        >
+          🔄 Sincronizar Mudanças
+        </button>
+        
+        {lastUpdate && (
+          <div style={{marginTop:'10px', fontSize:'14px', color:'#ccc'}}>
+            Última atualização: {new Date(lastUpdate).toLocaleString('pt-BR')}
+          </div>
+        )}
+        
+        <div style={{marginTop:'10px', fontSize:'12px', color:'#888'}}>
+          💡 Clique para forçar a sincronização em todos os dispositivos
+        </div>
       </div>
     </div>
   );
