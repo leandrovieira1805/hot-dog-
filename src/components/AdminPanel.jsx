@@ -447,21 +447,63 @@ const AdminPanel = () => {
           </button>
           
           {hasLocalChanges && (
-            <button 
-              onClick={clearLocalChanges} 
-              style={{
-                background:'#f44336', 
-                color:'white', 
-                border:'none', 
-                padding:'12px 24px', 
-                borderRadius:'8px', 
-                cursor:'pointer',
-                fontSize:'16px',
-                fontWeight:'bold'
-              }}
-            >
-              ❌ Descartar Mudanças
-            </button>
+            <>
+              <button 
+                onClick={clearLocalChanges} 
+                style={{
+                  background:'#f44336', 
+                  color:'white', 
+                  border:'none', 
+                  padding:'12px 24px', 
+                  borderRadius:'8px', 
+                  cursor:'pointer',
+                  fontSize:'16px',
+                  fontWeight:'bold'
+                }}
+              >
+                ❌ Descartar Mudanças
+              </button>
+              
+              <button 
+                onClick={() => {
+                  // Atualizar arquivo JSON diretamente
+                  const dataToSave = {
+                    products: products,
+                    dailyOffer: dailyOffer,
+                    pixKey: pixKey,
+                    pixName: pixName
+                  };
+                  
+                  // Salvar no localStorage
+                  localStorage.setItem('hotdog_products', JSON.stringify(products));
+                  localStorage.setItem('hotdog_daily_offer', JSON.stringify(dailyOffer));
+                  localStorage.setItem('pixKey', pixKey || '');
+                  localStorage.setItem('pixName', pixName || '');
+                  
+                  // Limpar flag de mudanças
+                  setHasLocalChanges(false);
+                  localStorage.removeItem('hotdog_has_local_changes');
+                  
+                  // Atualizar timestamp
+                  const timestamp = new Date().getTime();
+                  localStorage.setItem('hotdog_last_update', timestamp.toString());
+                  
+                  alert('✅ Mudanças aplicadas! Agora faça commit e push para sincronizar com todos os dispositivos.');
+                }} 
+                style={{
+                  background:'#2196F3', 
+                  color:'white', 
+                  border:'none', 
+                  padding:'12px 24px', 
+                  borderRadius:'8px', 
+                  cursor:'pointer',
+                  fontSize:'16px',
+                  fontWeight:'bold'
+                }}
+              >
+                💾 Salvar Localmente
+              </button>
+            </>
           )}
         </div>
         

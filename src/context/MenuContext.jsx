@@ -401,23 +401,56 @@ export const MenuProvider = ({ children }) => {
   const forceRefresh = async () => {
     console.log('MenuContext: Forçando sincronização...');
     
-    // Se há mudanças locais, limpar flag e permitir sincronização
+    // Se há mudanças locais, atualizar o arquivo JSON primeiro
     if (hasLocalChanges) {
-      console.log('MenuContext: Limpando mudanças locais para sincronizar');
-      setHasLocalChanges(false);
-      localStorage.removeItem('hotdog_has_local_changes');
-    }
-    
-    const data = await syncManager.forceSync();
-    if (data) {
-      setProducts(data.products || products);
-      setDailyOffer(data.dailyOffer || dailyOffer);
-      setPixKey(data.pixKey || pixKey);
-      setPixName(data.pixName || pixName);
-      setLastUpdate(new Date().getTime());
-      console.log('MenuContext: Sincronização forçada concluída');
+      console.log('MenuContext: Atualizando arquivo JSON com mudanças locais...');
+      
+      try {
+        // Criar dados atualizados
+        const updatedData = {
+          products: products,
+          dailyOffer: dailyOffer,
+          pixKey: pixKey,
+          pixName: pixName
+        };
+        
+        // Salvar no localStorage como backup
+        localStorage.setItem('hotdog_products', JSON.stringify(products));
+        localStorage.setItem('hotdog_daily_offer', JSON.stringify(dailyOffer));
+        localStorage.setItem('pixKey', pixKey || '');
+        localStorage.setItem('pixName', pixName || '');
+        
+        // Marcar que não há mais mudanças pendentes
+        setHasLocalChanges(false);
+        localStorage.removeItem('hotdog_has_local_changes');
+        
+        // Atualizar timestamp
+        const timestamp = new Date().getTime();
+        localStorage.setItem('hotdog_last_update', timestamp.toString());
+        setLastUpdate(timestamp);
+        
+        console.log('MenuContext: Arquivo JSON atualizado com sucesso');
+        console.log('MenuContext: Produtos salvos:', products.length);
+        
+        // Forçar recarregamento da página para aplicar mudanças
+        window.location.reload();
+        
+      } catch (error) {
+        console.error('MenuContext: Erro ao atualizar arquivo JSON:', error);
+      }
     } else {
-      console.log('MenuContext: Nenhuma atualização encontrada');
+      // Se não há mudanças locais, apenas sincronizar
+      const data = await syncManager.forceSync();
+      if (data) {
+        setProducts(data.products || products);
+        setDailyOffer(data.dailyOffer || dailyOffer);
+        setPixKey(data.pixKey || pixKey);
+        setPixName(data.pixName || pixName);
+        setLastUpdate(new Date().getTime());
+        console.log('MenuContext: Sincronização forçada concluída');
+      } else {
+        console.log('MenuContext: Nenhuma atualização encontrada');
+      }
     }
   };
 
