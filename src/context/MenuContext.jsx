@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import syncManager from '../utils/syncManager';
 
 const MenuContext = createContext();
 
@@ -54,72 +53,6 @@ const defaultProducts = [
   }
 ];
 
-// Função para carregar dados do arquivo JSON com cache busting
-const loadDataFromFile = async () => {
-  try {
-    // Adicionar timestamp para evitar cache
-    const timestamp = new Date().getTime();
-    const response = await fetch(`/data/products.json?t=${timestamp}`);
-    if (response.ok) {
-      const data = await response.json();
-      return data;
-    }
-  } catch (error) {
-    console.log('Arquivo de dados não encontrado, usando localStorage');
-  }
-  return null;
-};
-
-// Função para salvar dados no arquivo JSON via GitHub API
-const saveDataToGitHub = async (data) => {
-  try {
-    // Salvar no localStorage como backup
-    localStorage.setItem('hotdog_products', JSON.stringify(data.products));
-    localStorage.setItem('hotdog_daily_offer', JSON.stringify(data.dailyOffer));
-    localStorage.setItem('pixKey', data.pixKey || '');
-    localStorage.setItem('pixName', data.pixName || '');
-    
-    // Marcar que houve mudança para forçar recarregamento
-    localStorage.setItem('hotdog_last_update', new Date().getTime().toString());
-    
-    console.log('Dados salvos localmente e marcados para sincronização');
-    
-    // Em produção, aqui seria uma chamada para API do GitHub
-    // Por enquanto, vamos usar uma abordagem diferente
-    return true;
-  } catch (error) {
-    console.error('Erro ao salvar dados:', error);
-    return false;
-  }
-};
-
-// Função para verificar se há atualizações
-const checkForUpdates = async () => {
-  try {
-    const lastUpdate = localStorage.getItem('hotdog_last_update');
-    const timestamp = new Date().getTime();
-    const response = await fetch(`/data/products.json?t=${timestamp}`);
-    
-    if (response.ok) {
-      const data = await response.json();
-      const fileLastModified = response.headers.get('last-modified');
-      
-      if (lastUpdate && fileLastModified) {
-        const lastUpdateTime = new Date(parseInt(lastUpdate));
-        const fileTime = new Date(fileLastModified);
-        
-        if (fileTime > lastUpdateTime) {
-          console.log('Atualização detectada!');
-          return data;
-        }
-      }
-    }
-  } catch (error) {
-    console.log('Erro ao verificar atualizações:', error);
-  }
-  return null;
-};
-
 export const MenuProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [dailyOffer, setDailyOffer] = useState(null);
@@ -128,180 +61,65 @@ export const MenuProvider = ({ children }) => {
   const [pixName, setPixName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
-  const [hasLocalChanges, setHasLocalChanges] = useState(false);
 
+  // Carregar dados do localStorage na inicialização
   useEffect(() => {
-    console.log('MenuContext: Carregando dados...');
+    console.log('MenuContext: Inicializando...');
     
-    const loadData = async () => {
-      setIsLoading(true);
-      
-      // Verificar se há mudanças locais pendentes
-      const localLastUpdate = localStorage.getItem('hotdog_last_update');
-      const hasLocal = localStorage.getItem('hotdog_has_local_changes') === 'true';
-      
-      if (hasLocal && localLastUpdate) {
-        console.log('MenuContext: Mudanças locais detectadas, carregando do localStorage');
-        setHasLocalChanges(true);
-        
-        // Carregar dados locais
-        const savedProducts = localStorage.getItem('hotdog_products');
-        if (savedProducts) {
-          try {
-            const parsedProducts = JSON.parse(savedProducts);
-            setProducts(parsedProducts);
-          } catch (error) {
-            setProducts(defaultProducts);
-          }
-        } else {
-          setProducts(defaultProducts);
-        }
-
-        const savedOffer = localStorage.getItem('hotdog_daily_offer');
-        if (savedOffer) {
-          try {
-            setDailyOffer(JSON.parse(savedOffer));
-          } catch (error) {
-            setDailyOffer(null);
-          }
-        }
-
-        setPixKey(localStorage.getItem('pixKey') || '');
-        setPixName(localStorage.getItem('pixName') || '');
-        setLastUpdate(parseInt(localLastUpdate));
-        setIsLoading(false);
-        return;
+    // Carregar produtos do localStorage ou usar padrão
+    const savedProducts = localStorage.getItem('hotdog_products');
+    if (savedProducts) {
+      try {
+        const parsedProducts = JSON.parse(savedProducts);
+        console.log('MenuContext: Produtos carregados do localStorage:', parsedProducts.length);
+        setProducts(parsedProducts);
+      } catch (error) {
+        console.error('MenuContext: Erro ao carregar produtos:', error);
+        setProducts(defaultProducts);
+        localStorage.setItem('hotdog_products', JSON.stringify(defaultProducts));
       }
-      
-      // Se não há mudanças locais, verificar arquivo
-      const updates = await checkForUpdates();
-      if (updates) {
-        console.log('MenuContext: Atualizações encontradas:', updates);
-        setProducts(updates.products || defaultProducts);
-        setDailyOffer(updates.dailyOffer || null);
-        setPixKey(updates.pixKey || '');
-        setPixName(updates.pixName || '');
-        setLastUpdate(new Date().getTime());
-        setIsLoading(false);
-        return;
-      }
-      
-      // Tentar carregar do arquivo
-      const fileData = await loadDataFromFile();
-      
-      if (fileData) {
-        console.log('MenuContext: Dados carregados do arquivo:', fileData);
-        setProducts(fileData.products || defaultProducts);
-        setDailyOffer(fileData.dailyOffer || null);
-        setPixKey(fileData.pixKey || '');
-        setPixName(fileData.pixName || '');
-      } else {
-        // Fallback para localStorage
-        const savedProducts = localStorage.getItem('hotdog_products');
-        console.log('MenuContext: Produtos salvos encontrados:', savedProducts);
-        
-        if (savedProducts) {
-          try {
-            const parsedProducts = JSON.parse(savedProducts);
-            console.log('MenuContext: Produtos carregados:', parsedProducts);
-            setProducts(parsedProducts);
-          } catch (error) {
-            console.error('MenuContext: Erro ao carregar produtos:', error);
-            setProducts(defaultProducts);
-            localStorage.setItem('hotdog_products', JSON.stringify(defaultProducts));
-          }
-        } else {
-          console.log('MenuContext: Nenhum produto salvo, usando padrão');
-          setProducts(defaultProducts);
-          localStorage.setItem('hotdog_products', JSON.stringify(defaultProducts));
-        }
-
-        // Carregar oferta do dia
-        const savedOffer = localStorage.getItem('hotdog_daily_offer');
-        if (savedOffer) {
-          try {
-            setDailyOffer(JSON.parse(savedOffer));
-          } catch (error) {
-            console.error('MenuContext: Erro ao carregar oferta:', error);
-          }
-        }
-
-        // Carregar configurações Pix
-        setPixKey(localStorage.getItem('pixKey') || '');
-        setPixName(localStorage.getItem('pixName') || '');
-      }
-
-      // Verificar autenticação
-      const authStatus = localStorage.getItem('hotdog_admin_auth');
-      if (authStatus === 'true') {
-        setIsAuthenticated(true);
-      }
-      
-      setLastUpdate(new Date().getTime());
-      setIsLoading(false);
-    };
-
-    loadData();
-    
-    // Iniciar sincronização automática
-    syncManager.startAutoSync();
-    
-    // Escutar eventos de atualização
-    const handleProductsUpdated = (event) => {
-      // Só atualizar se não há mudanças locais pendentes
-      if (!hasLocalChanges) {
-        const data = event.detail;
-        console.log('MenuContext: Evento de atualização recebido:', data);
-        setProducts(data.products || products);
-        setDailyOffer(data.dailyOffer || dailyOffer);
-        setPixKey(data.pixKey || pixKey);
-        setPixName(data.pixName || pixName);
-        setLastUpdate(new Date().getTime());
-      } else {
-        console.log('MenuContext: Ignorando atualização - há mudanças locais pendentes');
-      }
-    };
-    
-    window.addEventListener('productsUpdated', handleProductsUpdated);
-
-    return () => {
-      syncManager.stopAutoSync();
-      window.removeEventListener('productsUpdated', handleProductsUpdated);
-    };
-  }, [hasLocalChanges]);
-
-  const saveProducts = async (newProducts) => {
-    console.log('MenuContext: Salvando produtos:', newProducts);
-    setProducts(newProducts);
-    
-    try {
-      // Salvar no arquivo (simulado)
-      const dataToSave = {
-        products: newProducts,
-        dailyOffer,
-        pixKey,
-        pixName
-      };
-      
-      await saveDataToGitHub(dataToSave);
-      console.log('MenuContext: Produtos salvos com sucesso');
-      
-      // Marcar mudança para sincronização
-      syncManager.markLocalChange();
-      setHasLocalChanges(true);
-      localStorage.setItem('hotdog_has_local_changes', 'true');
-      setLastUpdate(new Date().getTime());
-      
-      // Verificar se foi salvo
-      const saved = localStorage.getItem('hotdog_products');
-      console.log('MenuContext: Verificação - produtos no localStorage:', saved);
-    } catch (error) {
-      console.error('MenuContext: Erro ao salvar produtos:', error);
+    } else {
+      console.log('MenuContext: Nenhum produto salvo, usando padrão');
+      setProducts(defaultProducts);
+      localStorage.setItem('hotdog_products', JSON.stringify(defaultProducts));
     }
+
+    // Carregar oferta do dia
+    const savedOffer = localStorage.getItem('hotdog_daily_offer');
+    if (savedOffer) {
+      try {
+        setDailyOffer(JSON.parse(savedOffer));
+      } catch (error) {
+        setDailyOffer(null);
+      }
+    }
+
+    // Carregar configurações Pix
+    setPixKey(localStorage.getItem('pixKey') || '');
+    setPixName(localStorage.getItem('pixName') || '');
+
+    // Verificar autenticação
+    const authStatus = localStorage.getItem('hotdog_admin_auth');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
+
+    setLastUpdate(new Date().getTime());
+    setIsLoading(false);
+  }, []);
+
+  // Função para salvar produtos no localStorage
+  const saveProducts = (newProducts) => {
+    console.log('MenuContext: Salvando produtos:', newProducts.length);
+    setProducts(newProducts);
+    localStorage.setItem('hotdog_products', JSON.stringify(newProducts));
+    setLastUpdate(new Date().getTime());
+    console.log('MenuContext: Produtos salvos com sucesso');
   };
 
-  const addProduct = async (product) => {
-    console.log('MenuContext: Adicionando produto:', product);
+  // Função para adicionar produto
+  const addProduct = (product) => {
+    console.log('MenuContext: Adicionando produto:', product.name);
     const newProduct = {
       ...product,
       id: Date.now(),
@@ -309,12 +127,12 @@ export const MenuProvider = ({ children }) => {
       available: product.available !== false
     };
     const updatedProducts = [...products, newProduct];
-    console.log('MenuContext: Lista atualizada:', updatedProducts);
-    await saveProducts(updatedProducts);
+    saveProducts(updatedProducts);
   };
 
-  const updateProduct = async (id, updatedProduct) => {
-    console.log('MenuContext: Atualizando produto ID:', id, 'Dados:', updatedProduct);
+  // Função para atualizar produto
+  const updateProduct = (id, updatedProduct) => {
+    console.log('MenuContext: Atualizando produto ID:', id);
     const updatedProducts = products.map(product =>
       product.id === id ? { 
         ...updatedProduct, 
@@ -323,67 +141,37 @@ export const MenuProvider = ({ children }) => {
         available: updatedProduct.available !== false
       } : product
     );
-    await saveProducts(updatedProducts);
+    saveProducts(updatedProducts);
   };
 
-  const deleteProduct = async (id) => {
+  // Função para deletar produto
+  const deleteProduct = (id) => {
     console.log('MenuContext: Deletando produto ID:', id);
     const updatedProducts = products.filter(product => product.id !== id);
-    await saveProducts(updatedProducts);
+    saveProducts(updatedProducts);
   };
 
-  const setOffer = async (offer) => {
+  // Função para definir oferta do dia
+  const setOffer = (offer) => {
     setDailyOffer(offer);
-    
-    try {
-      if (offer) {
-        localStorage.setItem('hotdog_daily_offer', JSON.stringify(offer));
-      } else {
-        localStorage.removeItem('hotdog_daily_offer');
-      }
-      
-      // Salvar no arquivo também
-      const dataToSave = {
-        products,
-        dailyOffer: offer,
-        pixKey,
-        pixName
-      };
-      
-      await saveDataToGitHub(dataToSave);
-      setHasLocalChanges(true);
-      localStorage.setItem('hotdog_has_local_changes', 'true');
-      setLastUpdate(new Date().getTime());
-    } catch (error) {
-      console.error('MenuContext: Erro ao salvar oferta:', error);
+    if (offer) {
+      localStorage.setItem('hotdog_daily_offer', JSON.stringify(offer));
+    } else {
+      localStorage.removeItem('hotdog_daily_offer');
     }
+    setLastUpdate(new Date().getTime());
   };
 
-  const updatePixConfig = async (key, name) => {
+  // Função para atualizar configuração Pix
+  const updatePixConfig = (key, name) => {
     setPixKey(key);
     setPixName(name);
-    
-    try {
-      localStorage.setItem('pixKey', key);
-      localStorage.setItem('pixName', name);
-      
-      // Salvar no arquivo também
-      const dataToSave = {
-        products,
-        dailyOffer,
-        pixKey: key,
-        pixName: name
-      };
-      
-      await saveDataToGitHub(dataToSave);
-      setHasLocalChanges(true);
-      localStorage.setItem('hotdog_has_local_changes', 'true');
-      setLastUpdate(new Date().getTime());
-    } catch (error) {
-      console.error('MenuContext: Erro ao salvar configuração Pix:', error);
-    }
+    localStorage.setItem('pixKey', key);
+    localStorage.setItem('pixName', name);
+    setLastUpdate(new Date().getTime());
   };
 
+  // Função de login
   const login = (username, password) => {
     if (username === 'admin' && password === 'hotdog123') {
       setIsAuthenticated(true);
@@ -393,71 +181,34 @@ export const MenuProvider = ({ children }) => {
     return false;
   };
 
+  // Função de logout
   const logout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('hotdog_admin_auth');
   };
 
-  const forceRefresh = async () => {
+  // Função para forçar sincronização (simulada)
+  const forceRefresh = () => {
     console.log('MenuContext: Forçando sincronização...');
-    
-    // Se há mudanças locais, atualizar o arquivo JSON primeiro
-    if (hasLocalChanges) {
-      console.log('MenuContext: Atualizando arquivo JSON com mudanças locais...');
-      
-      try {
-        // Criar dados atualizados
-        const updatedData = {
-          products: products,
-          dailyOffer: dailyOffer,
-          pixKey: pixKey,
-          pixName: pixName
-        };
-        
-        // Salvar no localStorage como backup
-        localStorage.setItem('hotdog_products', JSON.stringify(products));
-        localStorage.setItem('hotdog_daily_offer', JSON.stringify(dailyOffer));
-        localStorage.setItem('pixKey', pixKey || '');
-        localStorage.setItem('pixName', pixName || '');
-        
-        // Marcar que não há mais mudanças pendentes
-        setHasLocalChanges(false);
-        localStorage.removeItem('hotdog_has_local_changes');
-        
-        // Atualizar timestamp
-        const timestamp = new Date().getTime();
-        localStorage.setItem('hotdog_last_update', timestamp.toString());
-        setLastUpdate(timestamp);
-        
-        console.log('MenuContext: Arquivo JSON atualizado com sucesso');
-        console.log('MenuContext: Produtos salvos:', products.length);
-        
-        // Forçar recarregamento da página para aplicar mudanças
-        window.location.reload();
-        
-      } catch (error) {
-        console.error('MenuContext: Erro ao atualizar arquivo JSON:', error);
-      }
-    } else {
-      // Se não há mudanças locais, apenas sincronizar
-      const data = await syncManager.forceSync();
-      if (data) {
-        setProducts(data.products || products);
-        setDailyOffer(data.dailyOffer || dailyOffer);
-        setPixKey(data.pixKey || pixKey);
-        setPixName(data.pixName || pixName);
-        setLastUpdate(new Date().getTime());
-        console.log('MenuContext: Sincronização forçada concluída');
-      } else {
-        console.log('MenuContext: Nenhuma atualização encontrada');
-      }
-    }
+    const timestamp = new Date().getTime();
+    setLastUpdate(timestamp);
+    localStorage.setItem('hotdog_last_update', timestamp.toString());
+    console.log('MenuContext: Sincronização forçada concluída');
   };
 
-  const clearLocalChanges = () => {
-    setHasLocalChanges(false);
-    localStorage.removeItem('hotdog_has_local_changes');
-    console.log('MenuContext: Mudanças locais limpas');
+  // Função para limpar dados
+  const clearData = () => {
+    localStorage.removeItem('hotdog_products');
+    localStorage.removeItem('hotdog_daily_offer');
+    localStorage.removeItem('pixKey');
+    localStorage.removeItem('pixName');
+    localStorage.removeItem('hotdog_last_update');
+    setProducts(defaultProducts);
+    setDailyOffer(null);
+    setPixKey('');
+    setPixName('');
+    setLastUpdate(new Date().getTime());
+    console.log('MenuContext: Dados limpos, voltando ao padrão');
   };
 
   return (
@@ -469,7 +220,6 @@ export const MenuProvider = ({ children }) => {
       pixName,
       isLoading,
       lastUpdate,
-      hasLocalChanges,
       addProduct,
       updateProduct,
       deleteProduct,
@@ -478,7 +228,7 @@ export const MenuProvider = ({ children }) => {
       login,
       logout,
       forceRefresh,
-      clearLocalChanges
+      clearData
     }}>
       {children}
     </MenuContext.Provider>

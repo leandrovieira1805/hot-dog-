@@ -11,14 +11,13 @@ const AdminPanel = () => {
     pixKey,
     pixName,
     lastUpdate,
-    hasLocalChanges,
     addProduct, 
     updateProduct, 
     deleteProduct, 
     setOffer, 
     updatePixConfig,
     forceRefresh,
-    clearLocalChanges,
+    clearData,
     logout 
   } = useMenu();
   
@@ -423,17 +422,11 @@ const AdminPanel = () => {
       
       {/* Botão de Sincronização */}
       <div style={{marginTop:'2rem', padding:'1rem', background:'#232323', borderRadius:'12px', textAlign:'center'}}>
-        {hasLocalChanges && (
-          <div style={{marginBottom:'15px', padding:'10px', background:'#ff9800', color:'white', borderRadius:'8px', fontSize:'14px'}}>
-            ⚠️ Há mudanças locais pendentes! Clique em "Sincronizar" para aplicar.
-          </div>
-        )}
-        
         <div style={{display:'flex', gap:'10px', justifyContent:'center', flexWrap:'wrap'}}>
           <button 
             onClick={forceRefresh} 
             style={{
-              background: hasLocalChanges ? '#ff9800' : '#4CAF50', 
+              background:'#4CAF50', 
               color:'white', 
               border:'none', 
               padding:'12px 24px', 
@@ -443,68 +436,24 @@ const AdminPanel = () => {
               fontWeight:'bold'
             }}
           >
-            {hasLocalChanges ? '🔄 Aplicar Mudanças' : '🔄 Sincronizar'}
+            🔄 Sincronizar
           </button>
           
-          {hasLocalChanges && (
-            <>
-              <button 
-                onClick={clearLocalChanges} 
-                style={{
-                  background:'#f44336', 
-                  color:'white', 
-                  border:'none', 
-                  padding:'12px 24px', 
-                  borderRadius:'8px', 
-                  cursor:'pointer',
-                  fontSize:'16px',
-                  fontWeight:'bold'
-                }}
-              >
-                ❌ Descartar Mudanças
-              </button>
-              
-              <button 
-                onClick={() => {
-                  // Atualizar arquivo JSON diretamente
-                  const dataToSave = {
-                    products: products,
-                    dailyOffer: dailyOffer,
-                    pixKey: pixKey,
-                    pixName: pixName
-                  };
-                  
-                  // Salvar no localStorage
-                  localStorage.setItem('hotdog_products', JSON.stringify(products));
-                  localStorage.setItem('hotdog_daily_offer', JSON.stringify(dailyOffer));
-                  localStorage.setItem('pixKey', pixKey || '');
-                  localStorage.setItem('pixName', pixName || '');
-                  
-                  // Limpar flag de mudanças
-                  setHasLocalChanges(false);
-                  localStorage.removeItem('hotdog_has_local_changes');
-                  
-                  // Atualizar timestamp
-                  const timestamp = new Date().getTime();
-                  localStorage.setItem('hotdog_last_update', timestamp.toString());
-                  
-                  alert('✅ Mudanças aplicadas! Agora faça commit e push para sincronizar com todos os dispositivos.');
-                }} 
-                style={{
-                  background:'#2196F3', 
-                  color:'white', 
-                  border:'none', 
-                  padding:'12px 24px', 
-                  borderRadius:'8px', 
-                  cursor:'pointer',
-                  fontSize:'16px',
-                  fontWeight:'bold'
-                }}
-              >
-                💾 Salvar Localmente
-              </button>
-            </>
-          )}
+          <button 
+            onClick={clearData} 
+            style={{
+              background:'#f44336', 
+              color:'white', 
+              border:'none', 
+              padding:'12px 24px', 
+              borderRadius:'8px', 
+              cursor:'pointer',
+              fontSize:'16px',
+              fontWeight:'bold'
+            }}
+          >
+            🗑️ Limpar Dados
+          </button>
         </div>
         
         {lastUpdate && (
@@ -514,10 +463,7 @@ const AdminPanel = () => {
         )}
         
         <div style={{marginTop:'10px', fontSize:'12px', color:'#888'}}>
-          {hasLocalChanges 
-            ? '💡 Clique em "Aplicar Mudanças" para sincronizar com todos os dispositivos'
-            : '💡 Clique para forçar a sincronização em todos os dispositivos'
-          }
+          💡 Mudanças são salvas automaticamente no localStorage
         </div>
       </div>
     </div>
