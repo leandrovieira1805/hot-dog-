@@ -56,7 +56,9 @@ const defaultProducts = [
 // Função para salvar dados no servidor via API
 const saveToServer = async (data) => {
   try {
-    const response = await fetch('/api/save', {
+    // Usar URL relativa para funcionar em produção
+    const apiUrl = process.env.NODE_ENV === 'production' ? '/api/save' : '/api/save';
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -81,7 +83,9 @@ const saveToServer = async (data) => {
 // Função para carregar dados do servidor
 const loadFromServer = async () => {
   try {
-    const response = await fetch('/api/data');
+    // Usar URL relativa para funcionar em produção
+    const apiUrl = process.env.NODE_ENV === 'production' ? '/api/data' : '/api/data';
+    const response = await fetch(apiUrl);
     if (response.ok) {
       const data = await response.json();
       console.log('Dados carregados do servidor:', data);

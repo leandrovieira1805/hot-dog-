@@ -7,9 +7,20 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://*.railway.app', 'https://*.vercel.app'] 
+    : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001'],
+  credentials: true
+}));
 app.use(express.json());
-app.use(express.static('public'));
+
+// Servir arquivos estáticos do build do React em produção
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'dist')));
+} else {
+  app.use(express.static('public'));
+}
 
 // Caminho para o arquivo de dados
 const dataPath = path.join(__dirname, 'public', 'data', 'products.json');
@@ -134,6 +145,15 @@ app.post('/api/clear', (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Rota para servir o React em produção
+app.get('*', (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  } else {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
   }
 });
 
