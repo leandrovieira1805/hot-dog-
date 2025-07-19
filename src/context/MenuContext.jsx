@@ -53,57 +53,118 @@ const defaultProducts = [
   }
 ];
 
+// Função para carregar dados do arquivo JSON
+const loadDataFromFile = async () => {
+  try {
+    const response = await fetch('/data/products.json');
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    }
+  } catch (error) {
+    console.log('Arquivo de dados não encontrado, usando localStorage');
+  }
+  return null;
+};
+
+// Função para salvar dados no arquivo JSON (simulado)
+const saveDataToFile = async (data) => {
+  // Em produção, isso seria uma API call para salvar no servidor
+  console.log('Dados para salvar no arquivo:', data);
+  
+  // Por enquanto, salvamos no localStorage como fallback
+  localStorage.setItem('hotdog_products', JSON.stringify(data.products));
+  localStorage.setItem('hotdog_daily_offer', JSON.stringify(data.dailyOffer));
+  localStorage.setItem('pixKey', data.pixKey || '');
+  localStorage.setItem('pixName', data.pixName || '');
+};
+
 export const MenuProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [dailyOffer, setDailyOffer] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [pixKey, setPixKey] = useState('');
+  const [pixName, setPixName] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('MenuContext: Carregando dados do localStorage...');
+    console.log('MenuContext: Carregando dados...');
     
-    // Carregar produtos do localStorage ou usar produtos padrão
-    const savedProducts = localStorage.getItem('hotdog_products');
-    console.log('MenuContext: Produtos salvos encontrados:', savedProducts);
-    
-    if (savedProducts) {
-      try {
-        const parsedProducts = JSON.parse(savedProducts);
-        console.log('MenuContext: Produtos carregados:', parsedProducts);
-        setProducts(parsedProducts);
-      } catch (error) {
-        console.error('MenuContext: Erro ao carregar produtos:', error);
-        setProducts(defaultProducts);
-        localStorage.setItem('hotdog_products', JSON.stringify(defaultProducts));
-      }
-    } else {
-      console.log('MenuContext: Nenhum produto salvo, usando padrão');
-      setProducts(defaultProducts);
-      localStorage.setItem('hotdog_products', JSON.stringify(defaultProducts));
-    }
+    const loadData = async () => {
+      setIsLoading(true);
+      
+      // Tentar carregar do arquivo primeiro
+      const fileData = await loadDataFromFile();
+      
+      if (fileData) {
+        console.log('MenuContext: Dados carregados do arquivo:', fileData);
+        setProducts(fileData.products || defaultProducts);
+        setDailyOffer(fileData.dailyOffer || null);
+        setPixKey(fileData.pixKey || '');
+        setPixName(fileData.pixName || '');
+      } else {
+        // Fallback para localStorage
+        const savedProducts = localStorage.getItem('hotdog_products');
+        console.log('MenuContext: Produtos salvos encontrados:', savedProducts);
+        
+        if (savedProducts) {
+          try {
+            const parsedProducts = JSON.parse(savedProducts);
+            console.log('MenuContext: Produtos carregados:', parsedProducts);
+            setProducts(parsedProducts);
+          } catch (error) {
+            console.error('MenuContext: Erro ao carregar produtos:', error);
+            setProducts(defaultProducts);
+            localStorage.setItem('hotdog_products', JSON.stringify(defaultProducts));
+          }
+        } else {
+          console.log('MenuContext: Nenhum produto salvo, usando padrão');
+          setProducts(defaultProducts);
+          localStorage.setItem('hotdog_products', JSON.stringify(defaultProducts));
+        }
 
-    // Carregar oferta do dia
-    const savedOffer = localStorage.getItem('hotdog_daily_offer');
-    if (savedOffer) {
-      try {
-        setDailyOffer(JSON.parse(savedOffer));
-      } catch (error) {
-        console.error('MenuContext: Erro ao carregar oferta:', error);
-      }
-    }
+        // Carregar oferta do dia
+        const savedOffer = localStorage.getItem('hotdog_daily_offer');
+        if (savedOffer) {
+          try {
+            setDailyOffer(JSON.parse(savedOffer));
+          } catch (error) {
+            console.error('MenuContext: Erro ao carregar oferta:', error);
+          }
+        }
 
-    // Verificar autenticação
-    const authStatus = localStorage.getItem('hotdog_admin_auth');
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
-    }
+        // Carregar configurações Pix
+        setPixKey(localStorage.getItem('pixKey') || '');
+        setPixName(localStorage.getItem('pixName') || '');
+      }
+
+      // Verificar autenticação
+      const authStatus = localStorage.getItem('hotdog_admin_auth');
+      if (authStatus === 'true') {
+        setIsAuthenticated(true);
+      }
+      
+      setIsLoading(false);
+    };
+
+    loadData();
   }, []);
 
-  const saveProducts = (newProducts) => {
+  const saveProducts = async (newProducts) => {
     console.log('MenuContext: Salvando produtos:', newProducts);
     setProducts(newProducts);
+    
     try {
-      localStorage.setItem('hotdog_products', JSON.stringify(newProducts));
-      console.log('MenuContext: Produtos salvos com sucesso no localStorage');
+      // Salvar no arquivo (simulado)
+      const dataToSave = {
+        products: newProducts,
+        dailyOffer,
+        pixKey,
+        pixName
+      };
+      
+      await saveDataToFile(dataToSave);
+      console.log('MenuContext: Produtos salvos com sucesso');
       
       // Verificar se foi salvo
       const saved = localStorage.getItem('hotdog_products');
@@ -113,7 +174,7 @@ export const MenuProvider = ({ children }) => {
     }
   };
 
-  const addProduct = (product) => {
+  const addProduct = async (product) => {
     console.log('MenuContext: Adicionando produto:', product);
     const newProduct = {
       ...product,
@@ -123,10 +184,10 @@ export const MenuProvider = ({ children }) => {
     };
     const updatedProducts = [...products, newProduct];
     console.log('MenuContext: Lista atualizada:', updatedProducts);
-    saveProducts(updatedProducts);
+    await saveProducts(updatedProducts);
   };
 
-  const updateProduct = (id, updatedProduct) => {
+  const updateProduct = async (id, updatedProduct) => {
     console.log('MenuContext: Atualizando produto ID:', id, 'Dados:', updatedProduct);
     const updatedProducts = products.map(product =>
       product.id === id ? { 
@@ -136,21 +197,58 @@ export const MenuProvider = ({ children }) => {
         available: updatedProduct.available !== false
       } : product
     );
-    saveProducts(updatedProducts);
+    await saveProducts(updatedProducts);
   };
 
-  const deleteProduct = (id) => {
+  const deleteProduct = async (id) => {
     console.log('MenuContext: Deletando produto ID:', id);
     const updatedProducts = products.filter(product => product.id !== id);
-    saveProducts(updatedProducts);
+    await saveProducts(updatedProducts);
   };
 
-  const setOffer = (offer) => {
+  const setOffer = async (offer) => {
     setDailyOffer(offer);
-    if (offer) {
-      localStorage.setItem('hotdog_daily_offer', JSON.stringify(offer));
-    } else {
-      localStorage.removeItem('hotdog_daily_offer');
+    
+    try {
+      if (offer) {
+        localStorage.setItem('hotdog_daily_offer', JSON.stringify(offer));
+      } else {
+        localStorage.removeItem('hotdog_daily_offer');
+      }
+      
+      // Salvar no arquivo também
+      const dataToSave = {
+        products,
+        dailyOffer: offer,
+        pixKey,
+        pixName
+      };
+      
+      await saveDataToFile(dataToSave);
+    } catch (error) {
+      console.error('MenuContext: Erro ao salvar oferta:', error);
+    }
+  };
+
+  const updatePixConfig = async (key, name) => {
+    setPixKey(key);
+    setPixName(name);
+    
+    try {
+      localStorage.setItem('pixKey', key);
+      localStorage.setItem('pixName', name);
+      
+      // Salvar no arquivo também
+      const dataToSave = {
+        products,
+        dailyOffer,
+        pixKey: key,
+        pixName: name
+      };
+      
+      await saveDataToFile(dataToSave);
+    } catch (error) {
+      console.error('MenuContext: Erro ao salvar configuração Pix:', error);
     }
   };
 
@@ -173,10 +271,14 @@ export const MenuProvider = ({ children }) => {
       products,
       dailyOffer,
       isAuthenticated,
+      pixKey,
+      pixName,
+      isLoading,
       addProduct,
       updateProduct,
       deleteProduct,
       setOffer,
+      updatePixConfig,
       login,
       logout
     }}>

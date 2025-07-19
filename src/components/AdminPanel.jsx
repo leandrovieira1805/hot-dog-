@@ -8,10 +8,13 @@ const AdminPanel = () => {
     products, 
     dailyOffer, 
     isAuthenticated, 
+    pixKey,
+    pixName,
     addProduct, 
     updateProduct, 
     deleteProduct, 
     setOffer, 
+    updatePixConfig,
     logout 
   } = useMenu();
   
@@ -36,13 +39,22 @@ const AdminPanel = () => {
     image: ''
   });
 
-  // Estados para Pix
-  const [pixKey, setPixKey] = useState(() => localStorage.getItem('pixKey') || '');
-  const [pixName, setPixName] = useState(() => localStorage.getItem('pixName') || '');
+  // Estados locais para Pix (serão sincronizados com o contexto)
+  const [localPixKey, setLocalPixKey] = useState(pixKey || '');
+  const [localPixName, setLocalPixName] = useState(pixName || '');
 
-  // Salvar Pix no localStorage ao alterar
-  useEffect(() => { localStorage.setItem('pixKey', pixKey); }, [pixKey]);
-  useEffect(() => { localStorage.setItem('pixName', pixName); }, [pixName]);
+  // Sincronizar com o contexto
+  useEffect(() => {
+    setLocalPixKey(pixKey || '');
+    setLocalPixName(pixName || '');
+  }, [pixKey, pixName]);
+
+  // Salvar Pix no contexto ao alterar
+  const handlePixChange = (key, name) => {
+    setLocalPixKey(key);
+    setLocalPixName(name);
+    updatePixConfig(key, name);
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -128,11 +140,11 @@ const AdminPanel = () => {
         <h3 style={{color:'#fff',marginBottom:'1rem'}}>Configurar Pix</h3>
         <div className="form-group">
           <label style={{color:'#fff'}}>Chave Pix:</label>
-          <input type="text" value={pixKey} onChange={e => setPixKey(e.target.value)} style={{width:'100%'}} />
+          <input type="text" value={localPixKey} onChange={e => handlePixChange(e.target.value, localPixName)} style={{width:'100%'}} />
         </div>
         <div className="form-group">
           <label style={{color:'#fff'}}>Nome do Recebedor:</label>
-          <input type="text" value={pixName} onChange={e => setPixName(e.target.value)} style={{width:'100%'}} />
+          <input type="text" value={localPixName} onChange={e => handlePixChange(localPixKey, e.target.value)} style={{width:'100%'}} />
         </div>
       </div>
 
