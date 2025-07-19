@@ -11,12 +11,14 @@ const AdminPanel = () => {
     pixKey,
     pixName,
     lastUpdate,
+    hasLocalChanges,
     addProduct, 
     updateProduct, 
     deleteProduct, 
     setOffer, 
     updatePixConfig,
     forceRefresh,
+    clearLocalChanges,
     logout 
   } = useMenu();
   
@@ -421,21 +423,47 @@ const AdminPanel = () => {
       
       {/* Botão de Sincronização */}
       <div style={{marginTop:'2rem', padding:'1rem', background:'#232323', borderRadius:'12px', textAlign:'center'}}>
-        <button 
-          onClick={forceRefresh} 
-          style={{
-            background:'#4CAF50', 
-            color:'white', 
-            border:'none', 
-            padding:'12px 24px', 
-            borderRadius:'8px', 
-            cursor:'pointer',
-            fontSize:'16px',
-            fontWeight:'bold'
-          }}
-        >
-          🔄 Sincronizar Mudanças
-        </button>
+        {hasLocalChanges && (
+          <div style={{marginBottom:'15px', padding:'10px', background:'#ff9800', color:'white', borderRadius:'8px', fontSize:'14px'}}>
+            ⚠️ Há mudanças locais pendentes! Clique em "Sincronizar" para aplicar.
+          </div>
+        )}
+        
+        <div style={{display:'flex', gap:'10px', justifyContent:'center', flexWrap:'wrap'}}>
+          <button 
+            onClick={forceRefresh} 
+            style={{
+              background: hasLocalChanges ? '#ff9800' : '#4CAF50', 
+              color:'white', 
+              border:'none', 
+              padding:'12px 24px', 
+              borderRadius:'8px', 
+              cursor:'pointer',
+              fontSize:'16px',
+              fontWeight:'bold'
+            }}
+          >
+            {hasLocalChanges ? '🔄 Aplicar Mudanças' : '🔄 Sincronizar'}
+          </button>
+          
+          {hasLocalChanges && (
+            <button 
+              onClick={clearLocalChanges} 
+              style={{
+                background:'#f44336', 
+                color:'white', 
+                border:'none', 
+                padding:'12px 24px', 
+                borderRadius:'8px', 
+                cursor:'pointer',
+                fontSize:'16px',
+                fontWeight:'bold'
+              }}
+            >
+              ❌ Descartar Mudanças
+            </button>
+          )}
+        </div>
         
         {lastUpdate && (
           <div style={{marginTop:'10px', fontSize:'14px', color:'#ccc'}}>
@@ -444,7 +472,10 @@ const AdminPanel = () => {
         )}
         
         <div style={{marginTop:'10px', fontSize:'12px', color:'#888'}}>
-          💡 Clique para forçar a sincronização em todos os dispositivos
+          {hasLocalChanges 
+            ? '💡 Clique em "Aplicar Mudanças" para sincronizar com todos os dispositivos'
+            : '💡 Clique para forçar a sincronização em todos os dispositivos'
+          }
         </div>
       </div>
     </div>

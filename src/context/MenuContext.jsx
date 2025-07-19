@@ -128,6 +128,7 @@ export const MenuProvider = ({ children }) => {
   const [pixName, setPixName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [hasLocalChanges, setHasLocalChanges] = useState(false);
 
   useEffect(() => {
     console.log('MenuContext: Carregando dados...');
@@ -135,7 +136,44 @@ export const MenuProvider = ({ children }) => {
     const loadData = async () => {
       setIsLoading(true);
       
-      // Verificar se há atualizações primeiro
+      // Verificar se há mudanças locais pendentes
+      const localLastUpdate = localStorage.getItem('hotdog_last_update');
+      const hasLocal = localStorage.getItem('hotdog_has_local_changes') === 'true';
+      
+      if (hasLocal && localLastUpdate) {
+        console.log('MenuContext: Mudanças locais detectadas, carregando do localStorage');
+        setHasLocalChanges(true);
+        
+        // Carregar dados locais
+        const savedProducts = localStorage.getItem('hotdog_products');
+        if (savedProducts) {
+          try {
+            const parsedProducts = JSON.parse(savedProducts);
+            setProducts(parsedProducts);
+          } catch (error) {
+            setProducts(defaultProducts);
+          }
+        } else {
+          setProducts(defaultProducts);
+        }
+
+        const savedOffer = localStorage.getItem('hotdog_daily_offer');
+        if (savedOffer) {
+          try {
+            setDailyOffer(JSON.parse(savedOffer));
+          } catch (error) {
+            setDailyOffer(null);
+          }
+        }
+
+        setPixKey(localStorage.getItem('pixKey') || '');
+        setPixName(localStorage.getItem('pixName') || '');
+        setLastUpdate(parseInt(localLastUpdate));
+        setIsLoading(false);
+        return;
+      }
+      
+      // Se não há mudanças locais, verificar arquivo
       const updates = await checkForUpdates();
       if (updates) {
         console.log('MenuContext: Atualizações encontradas:', updates);
@@ -210,13 +248,18 @@ export const MenuProvider = ({ children }) => {
     
     // Escutar eventos de atualização
     const handleProductsUpdated = (event) => {
-      const data = event.detail;
-      console.log('MenuContext: Evento de atualização recebido:', data);
-      setProducts(data.products || products);
-      setDailyOffer(data.dailyOffer || dailyOffer);
-      setPixKey(data.pixKey || pixKey);
-      setPixName(data.pixName || pixName);
-      setLastUpdate(new Date().getTime());
+      // Só atualizar se não há mudanças locais pendentes
+      if (!hasLocalChanges) {
+        const data = event.detail;
+        console.log('MenuContext: Evento de atualização recebido:', data);
+        setProducts(data.products || products);
+        setDailyOffer(data.dailyOffer || dailyOffer);
+        setPixKey(data.pixKey || pixKey);
+        setPixName(data.pixName || pixName);
+        setLastUpdate(new Date().getTime());
+      } else {
+        console.log('MenuContext: Ignorando atualização - há mudanças locais pendentes');
+      }
     };
     
     window.addEventListener('productsUpdated', handleProductsUpdated);
@@ -225,7 +268,7 @@ export const MenuProvider = ({ children }) => {
       syncManager.stopAutoSync();
       window.removeEventListener('productsUpdated', handleProductsUpdated);
     };
-  }, []);
+  }, [hasLocalChanges]);
 
   const saveProducts = async (newProducts) => {
     console.log('MenuContext: Salvando produtos:', newProducts);
@@ -245,6 +288,8 @@ export const MenuProvider = ({ children }) => {
       
       // Marcar mudança para sincronização
       syncManager.markLocalChange();
+      setHasLocalChanges(true);
+      localStorage.setItem('hotdog_has_local_changes', 'true');
       setLastUpdate(new Date().getTime());
       
       // Verificar se foi salvo
@@ -306,6 +351,8 @@ export const MenuProvider = ({ children }) => {
       };
       
       await saveDataToGitHub(dataToSave);
+      setHasLocalChanges(true);
+      localStorage.setItem('hotdog_has_local_changes', 'true');
       setLastUpdate(new Date().getTime());
     } catch (error) {
       console.error('MenuContext: Erro ao salvar oferta:', error);
@@ -318,7 +365,7 @@ export const MenuProvider = ({ children }) => {
     
     try {
       localStorage.setItem('pixKey', key);
-      localStorage.setItem('pixKey', name);
+      localStorage.setItem('pixName', name);
       
       // Salvar no arquivo também
       const dataToSave = {
@@ -329,6 +376,8 @@ export const MenuProvider = ({ children }) => {
       };
       
       await saveDataToGitHub(dataToSave);
+      setHasLocalChanges(true);
+      localStorage.setItem('hotdog_has_local_changes', 'true');
       setLastUpdate(new Date().getTime());
     } catch (error) {
       console.error('MenuContext: Erro ao salvar configuração Pix:', error);
@@ -351,6 +400,14 @@ export const MenuProvider = ({ children }) => {
 
   const forceRefresh = async () => {
     console.log('MenuContext: Forçando sincronização...');
+    
+    // Se há mudanças locais, limpar flag e permitir sincronização
+    if (hasLocalChanges) {
+      console.log('MenuContext: Limpando mudanças locais para sincronizar');
+      setHasLocalChanges(false);
+      localStorage.removeItem('hotdog_has_local_changes');
+    }
+    
     const data = await syncManager.forceSync();
     if (data) {
       setProducts(data.products || products);
@@ -364,6 +421,12 @@ export const MenuProvider = ({ children }) => {
     }
   };
 
+  const clearLocalChanges = () => {
+    setHasLocalChanges(false);
+    localStorage.removeItem('hotdog_has_local_changes');
+    console.log('MenuContext: Mudanças locais limpas');
+  };
+
   return (
     <MenuContext.Provider value={{
       products,
@@ -373,6 +436,7 @@ export const MenuProvider = ({ children }) => {
       pixName,
       isLoading,
       lastUpdate,
+      hasLocalChanges,
       addProduct,
       updateProduct,
       deleteProduct,
@@ -380,7 +444,8 @@ export const MenuProvider = ({ children }) => {
       updatePixConfig,
       login,
       logout,
-      forceRefresh
+      forceRefresh,
+      clearLocalChanges
     }}>
       {children}
     </MenuContext.Provider>
