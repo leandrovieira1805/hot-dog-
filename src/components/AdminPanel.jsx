@@ -11,6 +11,7 @@ const AdminPanel = () => {
     pixKey,
     pixName,
     lastUpdate,
+    isSaving,
     addProduct, 
     updateProduct, 
     deleteProduct, 
@@ -420,18 +421,25 @@ const AdminPanel = () => {
         )}
       </div>
       
-      {/* Botão de Sincronização */}
+      {/* Status e Botões */}
       <div style={{marginTop:'2rem', padding:'1rem', background:'#232323', borderRadius:'12px', textAlign:'center'}}>
+        {isSaving && (
+          <div style={{marginBottom:'15px', padding:'10px', background:'#2196F3', color:'white', borderRadius:'8px', fontSize:'14px'}}>
+            💾 Salvando mudanças no servidor...
+          </div>
+        )}
+        
         <div style={{display:'flex', gap:'10px', justifyContent:'center', flexWrap:'wrap'}}>
           <button 
             onClick={forceRefresh} 
+            disabled={isSaving}
             style={{
-              background:'#4CAF50', 
+              background: isSaving ? '#666' : '#4CAF50', 
               color:'white', 
               border:'none', 
               padding:'12px 24px', 
               borderRadius:'8px', 
-              cursor:'pointer',
+              cursor: isSaving ? 'not-allowed' : 'pointer',
               fontSize:'16px',
               fontWeight:'bold'
             }}
@@ -441,13 +449,14 @@ const AdminPanel = () => {
           
           <button 
             onClick={clearData} 
+            disabled={isSaving}
             style={{
-              background:'#f44336', 
+              background: isSaving ? '#666' : '#f44336', 
               color:'white', 
               border:'none', 
               padding:'12px 24px', 
               borderRadius:'8px', 
-              cursor:'pointer',
+              cursor: isSaving ? 'not-allowed' : 'pointer',
               fontSize:'16px',
               fontWeight:'bold'
             }}
@@ -463,7 +472,7 @@ const AdminPanel = () => {
         )}
         
         <div style={{marginTop:'10px', fontSize:'12px', color:'#888'}}>
-          💡 Mudanças são salvas automaticamente no localStorage
+          💡 Mudanças são salvas automaticamente no servidor para todos os usuários
         </div>
       </div>
     </div>
