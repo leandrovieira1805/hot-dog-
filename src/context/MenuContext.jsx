@@ -110,7 +110,7 @@ export const MenuProvider = ({ children }) => {
     const loadData = async () => {
       setIsLoading(true);
       
-      // SEMPRE carregar do servidor primeiro
+      // SEMPRE carregar do servidor primeiro - FORÇAR SINCRONIZAÇÃO
       const serverData = await loadFromServer();
       
       if (serverData && serverData.products) {
@@ -120,7 +120,7 @@ export const MenuProvider = ({ children }) => {
         setPixKey(serverData.pixKey || '');
         setPixName(serverData.pixName || '');
         
-        // Atualizar localStorage com dados do servidor
+        // SEMPRE atualizar localStorage com dados do servidor (não o contrário)
         localStorage.setItem('hotdog_products', JSON.stringify(serverData.products));
         if (serverData.dailyOffer) {
           localStorage.setItem('hotdog_daily_offer', JSON.stringify(serverData.dailyOffer));
@@ -129,6 +129,7 @@ export const MenuProvider = ({ children }) => {
         }
         localStorage.setItem('pixKey', serverData.pixKey || '');
         localStorage.setItem('pixName', serverData.pixName || '');
+        localStorage.setItem('hotdog_last_update', new Date().getTime().toString());
       } else {
         console.log('MenuContext: Servidor não disponível, usando dados padrão');
         setProducts(defaultProducts);
@@ -163,6 +164,29 @@ export const MenuProvider = ({ children }) => {
     };
 
     loadData();
+    
+    // Listener para detectar mudanças em outras abas
+    const handleStorageChange = (e) => {
+      if (e.key === 'hotdog_last_update') {
+        console.log('MenuContext: Mudança detectada, recarregando dados...');
+        loadData();
+      }
+    };
+    
+    // Listener para eventos customizados
+    const handleDataUpdate = () => {
+      console.log('MenuContext: Evento de atualização recebido, recarregando...');
+      loadData();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('hotdog-data-updated', handleDataUpdate);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('hotdog-data-updated', handleDataUpdate);
+    };
   }, []);
 
   // Função para salvar produtos
@@ -172,6 +196,7 @@ export const MenuProvider = ({ children }) => {
     
     // Salvar no localStorage
     localStorage.setItem('hotdog_products', JSON.stringify(newProducts));
+    localStorage.setItem('hotdog_last_update', new Date().getTime().toString());
     
     // Salvar no servidor
     setIsSaving(true);
@@ -186,6 +211,11 @@ export const MenuProvider = ({ children }) => {
     if (success) {
       console.log('MenuContext: Produtos salvos no servidor com sucesso');
       setLastUpdate(new Date().getTime());
+      
+      // Forçar sincronização em outras abas/dispositivos
+      window.dispatchEvent(new CustomEvent('hotdog-data-updated', {
+        detail: { timestamp: new Date().getTime() }
+      }));
     } else {
       console.log('MenuContext: Erro ao salvar no servidor, mantendo apenas local');
     }

@@ -134,10 +134,29 @@ const AdminPanel = () => {
     <div className="admin-panel">
       <div className="admin-header">
         <h1>🌭 Painel Administrativo</h1>
-        <button className="logout-btn" onClick={handleLogout}>
-          <LogOut size={20} />
-          Sair
-        </button>
+        <div className="admin-actions">
+          <button 
+            className="sync-btn" 
+            onClick={forceRefresh}
+            disabled={isSaving}
+            style={{
+              background: isSaving ? '#ccc' : '#4CAF50',
+              color: 'white',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              cursor: isSaving ? 'not-allowed' : 'pointer',
+              marginRight: '10px',
+              fontSize: '14px'
+            }}
+          >
+            {isSaving ? '⏳ Salvando...' : '🔄 Sincronizar'}
+          </button>
+          <button className="logout-btn" onClick={handleLogout}>
+            <LogOut size={20} />
+            Sair
+          </button>
+        </div>
       </div>
 
       {/* Cadastro Pix */}
