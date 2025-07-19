@@ -1337,7 +1337,7 @@ body {
   padding: 2rem 1.5rem 1.5rem 1.5rem;
   position: relative;
   animation: fadeInModal 0.2s;
-  max-height: 90vh;
+    max-height: 90vh;
   overflow-y: auto;
 }
 
@@ -1384,7 +1384,7 @@ body {
 
 .checkout-modal-content input,
 .checkout-modal-content select {
-  width: 100%;
+    width: 100%;
   padding: 0.7rem 1rem;
   border-radius: 8px;
   border: none;
@@ -1448,8 +1448,8 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  padding: 1rem;
-}
+    padding: 1rem;
+  }
 
 .customization-modal {
   background: #181818;
