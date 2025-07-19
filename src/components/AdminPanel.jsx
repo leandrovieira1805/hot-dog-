@@ -19,6 +19,7 @@ const AdminPanel = () => {
     updatePixConfig,
     forceRefresh,
     clearData,
+    restoreDefaults,
     logout 
   } = useMenu();
   
@@ -448,7 +449,11 @@ const AdminPanel = () => {
           </button>
           
           <button 
-            onClick={clearData} 
+            onClick={() => {
+              if (window.confirm('⚠️ ATENÇÃO: Isso vai apagar TODOS os produtos e configurações!\n\nTem certeza que deseja continuar?')) {
+                clearData();
+              }
+            }} 
             disabled={isSaving}
             style={{
               background: isSaving ? '#666' : '#f44336', 
@@ -461,7 +466,28 @@ const AdminPanel = () => {
               fontWeight:'bold'
             }}
           >
-            🗑️ Limpar Dados
+            🗑️ Limpar TUDO
+          </button>
+          
+          <button 
+            onClick={() => {
+              if (window.confirm('🔄 Restaurar produtos padrão?\n\nIsso vai substituir todos os produtos atuais pelos padrão.')) {
+                restoreDefaults();
+              }
+            }} 
+            disabled={isSaving}
+            style={{
+              background: isSaving ? '#666' : '#2196F3', 
+              color:'white', 
+              border:'none', 
+              padding:'12px 24px', 
+              borderRadius:'8px', 
+              cursor: isSaving ? 'not-allowed' : 'pointer',
+              fontSize:'16px',
+              fontWeight:'bold'
+            }}
+          >
+            🔄 Restaurar Padrão
           </button>
         </div>
         
@@ -477,6 +503,10 @@ const AdminPanel = () => {
         
         <div style={{marginTop:'10px', fontSize:'11px', color:'#666'}}>
           🔄 Clique em "Sincronizar" para forçar atualização em todos os dispositivos
+        </div>
+        
+        <div style={{marginTop:'5px', fontSize:'10px', color:'#555'}}>
+          🗑️ "Limpar TUDO" apaga todos os produtos e configurações permanentemente
         </div>
       </div>
     </div>

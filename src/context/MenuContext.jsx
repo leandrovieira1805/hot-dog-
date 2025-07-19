@@ -325,18 +325,72 @@ export const MenuProvider = ({ children }) => {
   };
 
   // Função para limpar dados
-  const clearData = () => {
+  const clearData = async () => {
+    console.log('MenuContext: Limpando todos os dados...');
+    
+    // Limpar localStorage
     localStorage.removeItem('hotdog_products');
     localStorage.removeItem('hotdog_daily_offer');
     localStorage.removeItem('pixKey');
     localStorage.removeItem('pixName');
     localStorage.removeItem('hotdog_last_update');
-    setProducts(defaultProducts);
+    
+    // Limpar estado local
+    setProducts([]);
     setDailyOffer(null);
     setPixKey('');
     setPixName('');
     setLastUpdate(new Date().getTime());
-    console.log('MenuContext: Dados limpos, voltando ao padrão');
+    
+    // Salvar dados vazios no servidor
+    const emptyData = {
+      products: [],
+      dailyOffer: null,
+      pixKey: '',
+      pixName: ''
+    };
+    
+    try {
+      await saveToServer(emptyData);
+      console.log('MenuContext: Dados limpos no servidor');
+    } catch (error) {
+      console.error('MenuContext: Erro ao limpar dados no servidor:', error);
+    }
+    
+    console.log('MenuContext: Todos os dados foram limpos');
+  };
+
+  // Função para restaurar produtos padrão
+  const restoreDefaults = async () => {
+    console.log('MenuContext: Restaurando produtos padrão...');
+    
+    const defaultData = {
+      products: defaultProducts,
+      dailyOffer: null,
+      pixKey: '',
+      pixName: ''
+    };
+    
+    setProducts(defaultProducts);
+    setDailyOffer(null);
+    setPixKey('');
+    setPixName('');
+    
+    // Salvar no localStorage
+    localStorage.setItem('hotdog_products', JSON.stringify(defaultProducts));
+    localStorage.removeItem('hotdog_daily_offer');
+    localStorage.setItem('pixKey', '');
+    localStorage.setItem('pixName', '');
+    
+    // Salvar no servidor
+    try {
+      await saveToServer(defaultData);
+      console.log('MenuContext: Produtos padrão restaurados no servidor');
+    } catch (error) {
+      console.error('MenuContext: Erro ao restaurar produtos padrão:', error);
+    }
+    
+    setLastUpdate(new Date().getTime());
   };
 
   return (
@@ -357,7 +411,8 @@ export const MenuProvider = ({ children }) => {
       login,
       logout,
       forceRefresh,
-      clearData
+      clearData,
+      restoreDefaults
     }}>
       {children}
     </MenuContext.Provider>
