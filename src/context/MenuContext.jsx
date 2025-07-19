@@ -53,15 +53,25 @@ const defaultProducts = [
   }
 ];
 
-// Função para salvar dados no arquivo JSON via API
+// Função para salvar dados no servidor via API
 const saveToServer = async (data) => {
   try {
-    // Simular salvamento no servidor
-    console.log('Salvando dados no servidor:', data);
+    const response = await fetch('/api/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    });
     
-    // Em produção, aqui seria uma chamada para API real
-    // Por enquanto, vamos usar uma abordagem diferente
-    return true;
+    if (response.ok) {
+      const result = await response.json();
+      console.log('Dados salvos no servidor:', result);
+      return true;
+    } else {
+      console.error('Erro ao salvar no servidor:', response.status);
+      return false;
+    }
   } catch (error) {
     console.error('Erro ao salvar no servidor:', error);
     return false;
@@ -71,8 +81,7 @@ const saveToServer = async (data) => {
 // Função para carregar dados do servidor
 const loadFromServer = async () => {
   try {
-    const timestamp = new Date().getTime();
-    const response = await fetch(`/data/products.json?t=${timestamp}`);
+    const response = await fetch('/api/data');
     if (response.ok) {
       const data = await response.json();
       console.log('Dados carregados do servidor:', data);
@@ -112,8 +121,8 @@ export const MenuProvider = ({ children }) => {
         setPixName(serverData.pixName || '');
       } else {
         // Fallback para localStorage
-        const savedProducts = localStorage.getItem('hotdog_products');
-        if (savedProducts) {
+    const savedProducts = localStorage.getItem('hotdog_products');
+    if (savedProducts) {
           try {
             const parsedProducts = JSON.parse(savedProducts);
             console.log('MenuContext: Produtos carregados do localStorage:', parsedProducts.length);
@@ -122,15 +131,15 @@ export const MenuProvider = ({ children }) => {
             console.error('MenuContext: Erro ao carregar produtos:', error);
             setProducts(defaultProducts);
           }
-        } else {
+    } else {
           console.log('MenuContext: Nenhum produto salvo, usando padrão');
-          setProducts(defaultProducts);
-        }
+      setProducts(defaultProducts);
+    }
 
-        const savedOffer = localStorage.getItem('hotdog_daily_offer');
-        if (savedOffer) {
+    const savedOffer = localStorage.getItem('hotdog_daily_offer');
+    if (savedOffer) {
           try {
-            setDailyOffer(JSON.parse(savedOffer));
+      setDailyOffer(JSON.parse(savedOffer));
           } catch (error) {
             setDailyOffer(null);
           }
@@ -138,13 +147,13 @@ export const MenuProvider = ({ children }) => {
 
         setPixKey(localStorage.getItem('pixKey') || '');
         setPixName(localStorage.getItem('pixName') || '');
-      }
+    }
 
-      // Verificar autenticação
-      const authStatus = localStorage.getItem('hotdog_admin_auth');
-      if (authStatus === 'true') {
-        setIsAuthenticated(true);
-      }
+    // Verificar autenticação
+    const authStatus = localStorage.getItem('hotdog_admin_auth');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
 
       setLastUpdate(new Date().getTime());
       setIsLoading(false);

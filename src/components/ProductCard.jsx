@@ -17,7 +17,7 @@ const ProductCard = ({ product }) => {
     } else if (product.name.toLowerCase().includes('enroladinho')) {
       setShowCustomization(true);
     } else {
-      addToCart(product);
+    addToCart(product);
     }
   };
 
@@ -62,34 +62,34 @@ const ProductCard = ({ product }) => {
 
   return (
     <>
-      <div className="product-card-modern">
-        <div className="product-image-container">
-          <img src={product.image} alt={product.name} className="product-image" />
-          <button className="favorite-btn">
-            <Heart size={18} />
-          </button>
-          <div className="product-badge-new">
-            <Star size={12} fill="currentColor" />
-            <span>4.8</span>
-          </div>
-        </div>
-        
-        <div className="product-content">
-          <h3 className="product-title">{product.name}</h3>
-          <div className="product-footer">
-            <div className="price-container">
-              <span className="product-price">R$ {product.price.toFixed(2)}</span>
-            </div>
-            
-            <button 
-              className="add-btn-modern"
-              onClick={handleAddToCart}
-            >
-              <Plus size={16} />
-            </button>
-          </div>
+    <div className="product-card-modern">
+      <div className="product-image-container">
+        <img src={product.image} alt={product.name} className="product-image" />
+        <button className="favorite-btn">
+          <Heart size={18} />
+        </button>
+        <div className="product-badge-new">
+          <Star size={12} fill="currentColor" />
+          <span>4.8</span>
         </div>
       </div>
+      
+      <div className="product-content">
+        <h3 className="product-title">{product.name}</h3>
+        <div className="product-footer">
+          <div className="price-container">
+            <span className="product-price">R$ {product.price.toFixed(2)}</span>
+          </div>
+          
+          <button 
+            className="add-btn-modern"
+            onClick={handleAddToCart}
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+      </div>
+    </div>
 
       {showCustomization && (
         <div className="customization-modal-overlay">
