@@ -110,7 +110,7 @@ export const MenuProvider = ({ children }) => {
     const loadData = async () => {
       setIsLoading(true);
       
-      // Tentar carregar do servidor primeiro
+      // SEMPRE carregar do servidor primeiro
       const serverData = await loadFromServer();
       
       if (serverData && serverData.products) {
@@ -119,41 +119,44 @@ export const MenuProvider = ({ children }) => {
         setDailyOffer(serverData.dailyOffer || null);
         setPixKey(serverData.pixKey || '');
         setPixName(serverData.pixName || '');
-      } else {
-        // Fallback para localStorage
-    const savedProducts = localStorage.getItem('hotdog_products');
-    if (savedProducts) {
-          try {
-            const parsedProducts = JSON.parse(savedProducts);
-            console.log('MenuContext: Produtos carregados do localStorage:', parsedProducts.length);
-            setProducts(parsedProducts);
-          } catch (error) {
-            console.error('MenuContext: Erro ao carregar produtos:', error);
-            setProducts(defaultProducts);
-          }
-    } else {
-          console.log('MenuContext: Nenhum produto salvo, usando padrão');
-      setProducts(defaultProducts);
-    }
-
-    const savedOffer = localStorage.getItem('hotdog_daily_offer');
-    if (savedOffer) {
-          try {
-      setDailyOffer(JSON.parse(savedOffer));
-          } catch (error) {
-            setDailyOffer(null);
-          }
+        
+        // Atualizar localStorage com dados do servidor
+        localStorage.setItem('hotdog_products', JSON.stringify(serverData.products));
+        if (serverData.dailyOffer) {
+          localStorage.setItem('hotdog_daily_offer', JSON.stringify(serverData.dailyOffer));
+        } else {
+          localStorage.removeItem('hotdog_daily_offer');
         }
+        localStorage.setItem('pixKey', serverData.pixKey || '');
+        localStorage.setItem('pixName', serverData.pixName || '');
+      } else {
+        console.log('MenuContext: Servidor não disponível, usando dados padrão');
+        setProducts(defaultProducts);
+        setDailyOffer(null);
+        setPixKey('');
+        setPixName('');
+        
+        // Salvar dados padrão no servidor
+        const defaultData = {
+          products: defaultProducts,
+          dailyOffer: null,
+          pixKey: '',
+          pixName: ''
+        };
+        
+        try {
+          await saveToServer(defaultData);
+          console.log('MenuContext: Dados padrão salvos no servidor');
+        } catch (error) {
+          console.log('MenuContext: Erro ao salvar dados padrão no servidor');
+        }
+      }
 
-        setPixKey(localStorage.getItem('pixKey') || '');
-        setPixName(localStorage.getItem('pixName') || '');
-    }
-
-    // Verificar autenticação
-    const authStatus = localStorage.getItem('hotdog_admin_auth');
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
-    }
+      // Verificar autenticação
+      const authStatus = localStorage.getItem('hotdog_admin_auth');
+      if (authStatus === 'true') {
+        setIsAuthenticated(true);
+      }
 
       setLastUpdate(new Date().getTime());
       setIsLoading(false);
@@ -294,12 +297,24 @@ export const MenuProvider = ({ children }) => {
     console.log('MenuContext: Forçando sincronização...');
     setIsLoading(true);
     
+    // Forçar recarregamento completo do servidor
     const serverData = await loadFromServer();
     if (serverData) {
-      setProducts(serverData.products || products);
-      setDailyOffer(serverData.dailyOffer || dailyOffer);
-      setPixKey(serverData.pixKey || pixKey);
-      setPixName(serverData.pixName || pixName);
+      setProducts(serverData.products || []);
+      setDailyOffer(serverData.dailyOffer || null);
+      setPixKey(serverData.pixKey || '');
+      setPixName(serverData.pixName || '');
+      
+      // Atualizar localStorage com dados do servidor
+      localStorage.setItem('hotdog_products', JSON.stringify(serverData.products || []));
+      if (serverData.dailyOffer) {
+        localStorage.setItem('hotdog_daily_offer', JSON.stringify(serverData.dailyOffer));
+      } else {
+        localStorage.removeItem('hotdog_daily_offer');
+      }
+      localStorage.setItem('pixKey', serverData.pixKey || '');
+      localStorage.setItem('pixName', serverData.pixName || '');
+      
       setLastUpdate(new Date().getTime());
       console.log('MenuContext: Sincronização concluída');
     } else {

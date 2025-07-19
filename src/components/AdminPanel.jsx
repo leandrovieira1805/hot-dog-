@@ -474,6 +474,10 @@ const AdminPanel = () => {
         <div style={{marginTop:'10px', fontSize:'12px', color:'#888'}}>
           💡 Mudanças são salvas automaticamente no servidor para todos os usuários
         </div>
+        
+        <div style={{marginTop:'10px', fontSize:'11px', color:'#666'}}>
+          🔄 Clique em "Sincronizar" para forçar atualização em todos os dispositivos
+        </div>
       </div>
     </div>
   );
