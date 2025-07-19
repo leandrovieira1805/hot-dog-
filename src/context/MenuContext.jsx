@@ -1,4 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { 
+  getMenuData, 
+  saveMenuData, 
+  addProduct as firebaseAddProduct,
+  updateProduct as firebaseUpdateProduct,
+  deleteProduct as firebaseDeleteProduct,
+  setDailyOffer as firebaseSetDailyOffer,
+  updatePixConfig as firebaseUpdatePixConfig,
+  clearAllData as firebaseClearAllData,
+  restoreDefaultData as firebaseRestoreDefaultData,
+  subscribeToMenuChanges
+} from '../firebase/menuService';
 
 const MenuContext = createContext();
 
@@ -53,46 +65,26 @@ const defaultProducts = [
   }
 ];
 
-// Função para salvar dados no servidor via API
-const saveToServer = async (data) => {
+// Função para salvar dados no Firebase
+const saveToFirebase = async (data) => {
   try {
-    // Usar URL relativa para funcionar em produção
-    const apiUrl = process.env.NODE_ENV === 'production' ? '/api/save' : '/api/save';
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data)
-    });
-    
-    if (response.ok) {
-      const result = await response.json();
-      console.log('Dados salvos no servidor:', result);
-      return true;
-    } else {
-      console.error('Erro ao salvar no servidor:', response.status);
-      return false;
-    }
+    await saveMenuData(data);
+    console.log('Dados salvos no Firebase');
+    return true;
   } catch (error) {
-    console.error('Erro ao salvar no servidor:', error);
+    console.error('Erro ao salvar no Firebase:', error);
     return false;
   }
 };
 
-// Função para carregar dados do servidor
-const loadFromServer = async () => {
+// Função para carregar dados do Firebase
+const loadFromFirebase = async () => {
   try {
-    // Usar URL relativa para funcionar em produção
-    const apiUrl = process.env.NODE_ENV === 'production' ? '/api/data' : '/api/data';
-    const response = await fetch(apiUrl);
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Dados carregados do servidor:', data);
-      return data;
-    }
+    const data = await getMenuData();
+    console.log('Dados carregados do Firebase:', data);
+    return data;
   } catch (error) {
-    console.log('Erro ao carregar do servidor:', error);
+    console.log('Erro ao carregar do Firebase:', error);
   }
   return null;
 };
@@ -107,54 +99,53 @@ export const MenuProvider = ({ children }) => {
   const [lastUpdate, setLastUpdate] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Carregar dados na inicialização
+  // Carregar dados na inicialização e sincronizar em tempo real
   useEffect(() => {
-    console.log('MenuContext: Inicializando...');
+    console.log('MenuContext: Inicializando com Firebase...');
     
     const loadData = async () => {
       setIsLoading(true);
       
-      // SEMPRE carregar do servidor primeiro - FORÇAR SINCRONIZAÇÃO
-      const serverData = await loadFromServer();
-      
-      if (serverData && serverData.products) {
-        console.log('MenuContext: Dados carregados do servidor');
-        setProducts(serverData.products);
-        setDailyOffer(serverData.dailyOffer || null);
-        setPixKey(serverData.pixKey || '');
-        setPixName(serverData.pixName || '');
+      try {
+        // Carregar dados do Firebase
+        const firebaseData = await loadFromFirebase();
         
-        // SEMPRE atualizar localStorage com dados do servidor (não o contrário)
-        localStorage.setItem('hotdog_products', JSON.stringify(serverData.products));
-        if (serverData.dailyOffer) {
-          localStorage.setItem('hotdog_daily_offer', JSON.stringify(serverData.dailyOffer));
+        if (firebaseData && firebaseData.products) {
+          console.log('MenuContext: Dados carregados do Firebase');
+          setProducts(firebaseData.products);
+          setDailyOffer(firebaseData.dailyOffer || null);
+          setPixKey(firebaseData.pixKey || '');
+          setPixName(firebaseData.pixName || '');
+          setLastUpdate(new Date(firebaseData.lastUpdate).getTime());
         } else {
-          localStorage.removeItem('hotdog_daily_offer');
+          console.log('MenuContext: Firebase não disponível, usando dados padrão');
+          setProducts(defaultProducts);
+          setDailyOffer(null);
+          setPixKey('');
+          setPixName('');
+          
+          // Salvar dados padrão no Firebase
+          const defaultData = {
+            products: defaultProducts,
+            dailyOffer: null,
+            pixKey: '',
+            pixName: ''
+          };
+          
+          try {
+            await saveToFirebase(defaultData);
+            console.log('MenuContext: Dados padrão salvos no Firebase');
+          } catch (error) {
+            console.log('MenuContext: Erro ao salvar dados padrão no Firebase');
+          }
         }
-        localStorage.setItem('pixKey', serverData.pixKey || '');
-        localStorage.setItem('pixName', serverData.pixName || '');
-        localStorage.setItem('hotdog_last_update', new Date().getTime().toString());
-      } else {
-        console.log('MenuContext: Servidor não disponível, usando dados padrão');
+      } catch (error) {
+        console.error('MenuContext: Erro ao carregar dados:', error);
+        // Fallback para dados padrão
         setProducts(defaultProducts);
         setDailyOffer(null);
         setPixKey('');
         setPixName('');
-        
-        // Salvar dados padrão no servidor
-        const defaultData = {
-          products: defaultProducts,
-          dailyOffer: null,
-          pixKey: '',
-          pixName: ''
-        };
-        
-        try {
-          await saveToServer(defaultData);
-          console.log('MenuContext: Dados padrão salvos no servidor');
-        } catch (error) {
-          console.log('MenuContext: Erro ao salvar dados padrão no servidor');
-        }
       }
 
       // Verificar autenticação
@@ -163,33 +154,27 @@ export const MenuProvider = ({ children }) => {
         setIsAuthenticated(true);
       }
 
-      setLastUpdate(new Date().getTime());
       setIsLoading(false);
     };
 
+    // Carregar dados iniciais
     loadData();
     
-    // Listener para detectar mudanças em outras abas
-    const handleStorageChange = (e) => {
-      if (e.key === 'hotdog_last_update') {
-        console.log('MenuContext: Mudança detectada, recarregando dados...');
-        loadData();
+    // Sincronização em tempo real com Firebase
+    const unsubscribe = subscribeToMenuChanges((data) => {
+      if (data) {
+        console.log('MenuContext: Mudança detectada no Firebase, atualizando...');
+        setProducts(data.products || []);
+        setDailyOffer(data.dailyOffer || null);
+        setPixKey(data.pixKey || '');
+        setPixName(data.pixName || '');
+        setLastUpdate(new Date(data.lastUpdate).getTime());
       }
-    };
-    
-    // Listener para eventos customizados
-    const handleDataUpdate = () => {
-      console.log('MenuContext: Evento de atualização recebido, recarregando...');
-      loadData();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('hotdog-data-updated', handleDataUpdate);
+    });
     
     // Cleanup
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('hotdog-data-updated', handleDataUpdate);
+      unsubscribe();
     };
   }, []);
 
@@ -198,11 +183,7 @@ export const MenuProvider = ({ children }) => {
     console.log('MenuContext: Salvando produtos:', newProducts.length);
     setProducts(newProducts);
     
-    // Salvar no localStorage
-    localStorage.setItem('hotdog_products', JSON.stringify(newProducts));
-    localStorage.setItem('hotdog_last_update', new Date().getTime().toString());
-    
-    // Salvar no servidor
+    // Salvar no Firebase
     setIsSaving(true);
     const dataToSave = {
       products: newProducts,
@@ -211,17 +192,12 @@ export const MenuProvider = ({ children }) => {
       pixName
     };
     
-    const success = await saveToServer(dataToSave);
+    const success = await saveToFirebase(dataToSave);
     if (success) {
-      console.log('MenuContext: Produtos salvos no servidor com sucesso');
+      console.log('MenuContext: Produtos salvos no Firebase com sucesso');
       setLastUpdate(new Date().getTime());
-      
-      // Forçar sincronização em outras abas/dispositivos
-      window.dispatchEvent(new CustomEvent('hotdog-data-updated', {
-        detail: { timestamp: new Date().getTime() }
-      }));
     } else {
-      console.log('MenuContext: Erro ao salvar no servidor, mantendo apenas local');
+      console.log('MenuContext: Erro ao salvar no Firebase');
     }
     setIsSaving(false);
   };
@@ -229,85 +205,60 @@ export const MenuProvider = ({ children }) => {
   // Função para adicionar produto
   const addProduct = async (product) => {
     console.log('MenuContext: Adicionando produto:', product.name);
-    const newProduct = {
-      ...product,
-      id: Date.now(),
-      category: product.category || 'Lanches',
-      available: product.available !== false
-    };
-    const updatedProducts = [...products, newProduct];
-    await saveProducts(updatedProducts);
+    try {
+      const newProduct = await firebaseAddProduct(product);
+      console.log('MenuContext: Produto adicionado com sucesso');
+      return newProduct;
+    } catch (error) {
+      console.error('MenuContext: Erro ao adicionar produto:', error);
+      throw error;
+    }
   };
 
   // Função para atualizar produto
   const updateProduct = async (id, updatedProduct) => {
     console.log('MenuContext: Atualizando produto ID:', id);
-    const updatedProducts = products.map(product =>
-      product.id === id ? { 
-        ...updatedProduct, 
-        id,
-        category: updatedProduct.category || product.category || 'Lanches',
-        available: updatedProduct.available !== false
-      } : product
-    );
-    await saveProducts(updatedProducts);
+    try {
+      await firebaseUpdateProduct(id, updatedProduct);
+      console.log('MenuContext: Produto atualizado com sucesso');
+    } catch (error) {
+      console.error('MenuContext: Erro ao atualizar produto:', error);
+      throw error;
+    }
   };
 
   // Função para deletar produto
   const deleteProduct = async (id) => {
     console.log('MenuContext: Deletando produto ID:', id);
-    const updatedProducts = products.filter(product => product.id !== id);
-    await saveProducts(updatedProducts);
+    try {
+      await firebaseDeleteProduct(id);
+      console.log('MenuContext: Produto deletado com sucesso');
+    } catch (error) {
+      console.error('MenuContext: Erro ao deletar produto:', error);
+      throw error;
+    }
   };
 
   // Função para definir oferta do dia
   const setOffer = async (offer) => {
-    setDailyOffer(offer);
-    if (offer) {
-      localStorage.setItem('hotdog_daily_offer', JSON.stringify(offer));
-    } else {
-      localStorage.removeItem('hotdog_daily_offer');
+    try {
+      await firebaseSetDailyOffer(offer);
+      console.log('MenuContext: Oferta salva no Firebase com sucesso');
+    } catch (error) {
+      console.error('MenuContext: Erro ao salvar oferta:', error);
+      throw error;
     }
-    
-    // Salvar no servidor
-    setIsSaving(true);
-    const dataToSave = {
-      products,
-      dailyOffer: offer,
-      pixKey,
-      pixName
-    };
-    
-    const success = await saveToServer(dataToSave);
-    if (success) {
-      console.log('MenuContext: Oferta salva no servidor com sucesso');
-      setLastUpdate(new Date().getTime());
-    }
-    setIsSaving(false);
   };
 
   // Função para atualizar configuração Pix
   const updatePixConfig = async (key, name) => {
-    setPixKey(key);
-    setPixName(name);
-    localStorage.setItem('pixKey', key);
-    localStorage.setItem('pixName', name);
-    
-    // Salvar no servidor
-    setIsSaving(true);
-    const dataToSave = {
-      products,
-      dailyOffer,
-      pixKey: key,
-      pixName: name
-    };
-    
-    const success = await saveToServer(dataToSave);
-    if (success) {
-      console.log('MenuContext: Configuração Pix salva no servidor com sucesso');
-      setLastUpdate(new Date().getTime());
+    try {
+      await firebaseUpdatePixConfig(key, name);
+      console.log('MenuContext: Configuração Pix salva no Firebase com sucesso');
+    } catch (error) {
+      console.error('MenuContext: Erro ao salvar configuração Pix:', error);
+      throw error;
     }
-    setIsSaving(false);
   };
 
   // Função de login
@@ -331,28 +282,21 @@ export const MenuProvider = ({ children }) => {
     console.log('MenuContext: Forçando sincronização...');
     setIsLoading(true);
     
-    // Forçar recarregamento completo do servidor
-    const serverData = await loadFromServer();
-    if (serverData) {
-      setProducts(serverData.products || []);
-      setDailyOffer(serverData.dailyOffer || null);
-      setPixKey(serverData.pixKey || '');
-      setPixName(serverData.pixName || '');
-      
-      // Atualizar localStorage com dados do servidor
-      localStorage.setItem('hotdog_products', JSON.stringify(serverData.products || []));
-      if (serverData.dailyOffer) {
-        localStorage.setItem('hotdog_daily_offer', JSON.stringify(serverData.dailyOffer));
+    try {
+      // Recarregar dados do Firebase
+      const firebaseData = await loadFromFirebase();
+      if (firebaseData) {
+        setProducts(firebaseData.products || []);
+        setDailyOffer(firebaseData.dailyOffer || null);
+        setPixKey(firebaseData.pixKey || '');
+        setPixName(firebaseData.pixName || '');
+        setLastUpdate(new Date(firebaseData.lastUpdate).getTime());
+        console.log('MenuContext: Sincronização concluída');
       } else {
-        localStorage.removeItem('hotdog_daily_offer');
+        console.log('MenuContext: Nenhuma atualização encontrada');
       }
-      localStorage.setItem('pixKey', serverData.pixKey || '');
-      localStorage.setItem('pixName', serverData.pixName || '');
-      
-      setLastUpdate(new Date().getTime());
-      console.log('MenuContext: Sincronização concluída');
-    } else {
-      console.log('MenuContext: Nenhuma atualização encontrada');
+    } catch (error) {
+      console.error('MenuContext: Erro na sincronização:', error);
     }
     
     setIsLoading(false);
@@ -362,69 +306,24 @@ export const MenuProvider = ({ children }) => {
   const clearData = async () => {
     console.log('MenuContext: Limpando todos os dados...');
     
-    // Limpar localStorage
-    localStorage.removeItem('hotdog_products');
-    localStorage.removeItem('hotdog_daily_offer');
-    localStorage.removeItem('pixKey');
-    localStorage.removeItem('pixName');
-    localStorage.removeItem('hotdog_last_update');
-    
-    // Limpar estado local
-    setProducts([]);
-    setDailyOffer(null);
-    setPixKey('');
-    setPixName('');
-    setLastUpdate(new Date().getTime());
-    
-    // Salvar dados vazios no servidor
-    const emptyData = {
-      products: [],
-      dailyOffer: null,
-      pixKey: '',
-      pixName: ''
-    };
-    
     try {
-      await saveToServer(emptyData);
-      console.log('MenuContext: Dados limpos no servidor');
+      await firebaseClearAllData();
+      console.log('MenuContext: Dados limpos no Firebase');
     } catch (error) {
-      console.error('MenuContext: Erro ao limpar dados no servidor:', error);
+      console.error('MenuContext: Erro ao limpar dados no Firebase:', error);
     }
-    
-    console.log('MenuContext: Todos os dados foram limpos');
   };
 
   // Função para restaurar produtos padrão
   const restoreDefaults = async () => {
     console.log('MenuContext: Restaurando produtos padrão...');
     
-    const defaultData = {
-      products: defaultProducts,
-      dailyOffer: null,
-      pixKey: '',
-      pixName: ''
-    };
-    
-    setProducts(defaultProducts);
-    setDailyOffer(null);
-    setPixKey('');
-    setPixName('');
-    
-    // Salvar no localStorage
-    localStorage.setItem('hotdog_products', JSON.stringify(defaultProducts));
-    localStorage.removeItem('hotdog_daily_offer');
-    localStorage.setItem('pixKey', '');
-    localStorage.setItem('pixName', '');
-    
-    // Salvar no servidor
     try {
-      await saveToServer(defaultData);
-      console.log('MenuContext: Produtos padrão restaurados no servidor');
+      await firebaseRestoreDefaultData();
+      console.log('MenuContext: Produtos padrão restaurados no Firebase');
     } catch (error) {
       console.error('MenuContext: Erro ao restaurar produtos padrão:', error);
     }
-    
-    setLastUpdate(new Date().getTime());
   };
 
   return (
