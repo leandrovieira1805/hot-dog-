@@ -139,4 +139,4 @@ Para problemas ou dúvidas:
 
 ---
 
-**Desenvolvido com ❤️ para delivery de hot dogs** 
+**Desenvolvido com ❤️ para delivery de hot dogs**
