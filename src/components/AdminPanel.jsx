@@ -135,6 +135,25 @@ const AdminPanel = () => {
       <div className="admin-header">
         <h1>🌭 Painel Administrativo</h1>
         <div className="admin-actions">
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            marginRight: '15px',
+            fontSize: '12px',
+            color: lastUpdate ? '#4CAF50' : '#ff6b6b'
+          }}>
+            {lastUpdate ? (
+              <>
+                <span style={{ marginRight: '5px' }}>🟢</span>
+                Sincronizado
+              </>
+            ) : (
+              <>
+                <span style={{ marginRight: '5px' }}>🔴</span>
+                Não sincronizado
+              </>
+            )}
+          </div>
           <button 
             className="sync-btn" 
             onClick={forceRefresh}
@@ -191,7 +210,7 @@ const AdminPanel = () => {
         {activeTab === 'products' && (
           <div className="products-section">
             <div className="section-header">
-              <h2>Gerenciar Produtos</h2>
+              <h2>Gerenciar Produtos ({products.length} produtos)</h2>
               <button 
                 className="add-btn"
                 onClick={() => {

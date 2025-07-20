@@ -98,6 +98,7 @@ export const MenuProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [syncTimeout, setSyncTimeout] = useState(null);
 
   // Carregar dados na inicialização e sincronizar em tempo real
   useEffect(() => {
@@ -164,17 +165,35 @@ export const MenuProvider = ({ children }) => {
     const unsubscribe = subscribeToMenuChanges((data) => {
       if (data) {
         console.log('MenuContext: Mudança detectada no Firebase, atualizando...');
-        setProducts(data.products || []);
-        setDailyOffer(data.dailyOffer || null);
-        setPixKey(data.pixKey || '');
-        setPixName(data.pixName || '');
-        setLastUpdate(new Date(data.lastUpdate).getTime());
+        console.log(`📦 Produtos recebidos: ${data.products?.length || 0}`);
+        
+        // Debounce para evitar múltiplas atualizações
+        if (syncTimeout) {
+          clearTimeout(syncTimeout);
+        }
+        
+        const timeout = setTimeout(() => {
+          // Sempre atualizar com os dados mais recentes do Firebase
+          // Isso garante que não perdemos sincronização
+          setProducts(data.products || []);
+          setDailyOffer(data.dailyOffer || null);
+          setPixKey(data.pixKey || '');
+          setPixName(data.pixName || '');
+          setLastUpdate(new Date(data.lastUpdate).getTime());
+          
+          console.log('✅ Dados atualizados com sucesso');
+        }, 100); // 100ms de debounce
+        
+        setSyncTimeout(timeout);
       }
     });
     
     // Cleanup
     return () => {
       unsubscribe();
+      if (syncTimeout) {
+        clearTimeout(syncTimeout);
+      }
     };
   }, []);
 
@@ -208,6 +227,10 @@ export const MenuProvider = ({ children }) => {
     try {
       const newProduct = await firebaseAddProduct(product);
       console.log('MenuContext: Produto adicionado com sucesso');
+      
+      // A sincronização em tempo real vai atualizar automaticamente
+      // Não precisamos forçar atualização manual
+      
       return newProduct;
     } catch (error) {
       console.error('MenuContext: Erro ao adicionar produto:', error);
@@ -221,6 +244,8 @@ export const MenuProvider = ({ children }) => {
     try {
       await firebaseUpdateProduct(id, updatedProduct);
       console.log('MenuContext: Produto atualizado com sucesso');
+      
+      // A sincronização em tempo real vai atualizar automaticamente
     } catch (error) {
       console.error('MenuContext: Erro ao atualizar produto:', error);
       throw error;
@@ -233,6 +258,8 @@ export const MenuProvider = ({ children }) => {
     try {
       await firebaseDeleteProduct(id);
       console.log('MenuContext: Produto deletado com sucesso');
+      
+      // A sincronização em tempo real vai atualizar automaticamente
     } catch (error) {
       console.error('MenuContext: Erro ao deletar produto:', error);
       throw error;
