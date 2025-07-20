@@ -2,14 +2,15 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
-// Configuração do Firebase (substitua pelas suas credenciais)
+// Configuração do Firebase - Credenciais reais
 const firebaseConfig = {
-  apiKey: "AIzaSyBXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  authDomain: "hotdog-praca.firebaseapp.com",
-  projectId: "hotdog-praca",
-  storageBucket: "hotdog-praca.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdefghijklmnop"
+  apiKey: "AIzaSyAuZ1SJWxlwWtgVhV3qnBafoytho59WE4I",
+  authDomain: "device-streaming-77144326.firebaseapp.com",
+  databaseURL: "https://device-streaming-77144326-default-rtdb.firebaseio.com",
+  projectId: "device-streaming-77144326",
+  storageBucket: "device-streaming-77144326.firebasestorage.app",
+  messagingSenderId: "375948005973",
+  appId: "1:375948005973:web:99b7ff4736d6c17f927adc"
 };
 
 // Inicializar Firebase
