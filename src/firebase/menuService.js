@@ -15,76 +15,51 @@ import {
 import { db } from './config';
 
 // Referências para os documentos
+const MENU_DOC_ID = 'menu_data'; // Voltar para estrutura antiga temporariamente
 const MENU_CONFIG_DOC_ID = 'menu_config';
 const PRODUCTS_COLLECTION = 'products';
 
-// Função para obter dados do menu (configurações)
+// Função para obter dados do menu (estrutura antiga temporária)
 export const getMenuData = async () => {
   try {
-    const configRef = doc(db, 'menu', MENU_CONFIG_DOC_ID);
-    const configSnap = await getDoc(configRef);
+    const docRef = doc(db, 'menu', MENU_DOC_ID);
+    const docSnap = await getDoc(docRef);
     
-    // Obter produtos da coleção separada
-    const productsQuery = query(collection(db, PRODUCTS_COLLECTION), orderBy('createdAt', 'desc'));
-    const productsSnap = await getDocs(productsQuery);
-    const products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
-    if (configSnap.exists()) {
-      const configData = configSnap.data();
-      const result = {
-        ...configData,
-        products: products
-      };
-      console.log('Firebase: Dados carregados:', { 
-        config: configData, 
-        productsCount: products.length 
-      });
-      return result;
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      console.log('Firebase: Dados carregados (estrutura antiga):', data);
+      return data;
     } else {
-      console.log('Firebase: Configuração não existe, criando padrão...');
-      const defaultConfig = {
+      console.log('Firebase: Documento não existe, criando padrão...');
+      const defaultData = {
+        products: [
+          {
+            id: 1,
+            name: 'Hot Dog Tradicional',
+            price: 8.50,
+            image: 'https://images.pexels.com/photos/4676401/pexels-photo-4676401.jpeg?auto=compress&cs=tinysrgb&w=400',
+            category: 'Lanches',
+            available: true,
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 2,
+            name: 'Hot Dog Especial',
+            price: 12.00,
+            image: 'https://images.pexels.com/photos/1633525/pexels-photo-1633525.jpeg?auto=compress&cs=tinysrgb&w=400',
+            category: 'Lanches',
+            available: true,
+            createdAt: new Date().toISOString()
+          }
+        ],
         dailyOffer: null,
         pixKey: '',
         pixName: '',
         lastUpdate: new Date().toISOString()
       };
       
-      await setDoc(configRef, defaultConfig);
-      
-      // Criar produtos padrão
-      const defaultProducts = [
-        {
-          name: 'Hot Dog Tradicional',
-          price: 8.50,
-          image: 'https://images.pexels.com/photos/4676401/pexels-photo-4676401.jpeg?auto=compress&cs=tinysrgb&w=400',
-          category: 'Lanches',
-          available: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          name: 'Hot Dog Especial',
-          price: 12.00,
-          image: 'https://images.pexels.com/photos/1633525/pexels-photo-1633525.jpeg?auto=compress&cs=tinysrgb&w=400',
-          category: 'Lanches',
-          available: true,
-          createdAt: new Date().toISOString()
-        }
-      ];
-      
-      const batch = writeBatch(db);
-      defaultProducts.forEach(product => {
-        const productRef = doc(collection(db, PRODUCTS_COLLECTION));
-        batch.set(productRef, product);
-      });
-      await batch.commit();
-      
-      return {
-        ...defaultConfig,
-        products: defaultProducts.map((product, index) => ({ 
-          id: `default_${index + 1}`, 
-          ...product 
-        }))
-      };
+      await setDoc(docRef, defaultData);
+      return defaultData;
     }
   } catch (error) {
     console.error('Firebase: Erro ao carregar dados:', error);
@@ -92,7 +67,25 @@ export const getMenuData = async () => {
   }
 };
 
-// Função para salvar configurações do menu
+// Função para salvar dados do menu (estrutura antiga)
+export const saveMenuData = async (data) => {
+  try {
+    const docRef = doc(db, 'menu', MENU_DOC_ID);
+    const dataToSave = {
+      ...data,
+      lastUpdate: new Date().toISOString()
+    };
+    
+    await setDoc(docRef, dataToSave);
+    console.log('Firebase: Dados salvos com sucesso (estrutura antiga)');
+    return true;
+  } catch (error) {
+    console.error('Firebase: Erro ao salvar dados:', error);
+    throw error;
+  }
+};
+
+// Função para salvar configurações do menu (nova estrutura - comentada)
 export const saveMenuConfig = async (config) => {
   try {
     const configRef = doc(db, 'menu', MENU_CONFIG_DOC_ID);
@@ -110,36 +103,47 @@ export const saveMenuConfig = async (config) => {
   }
 };
 
-// Função para adicionar produto
+// Função para adicionar produto (estrutura antiga)
 export const addProduct = async (product) => {
   try {
     const newProduct = {
       ...product,
+      id: Date.now(),
       createdAt: new Date().toISOString()
     };
     
-    const productRef = doc(collection(db, PRODUCTS_COLLECTION));
-    await setDoc(productRef, newProduct);
+    const currentData = await getMenuData();
+    const updatedProducts = [...currentData.products, newProduct];
     
-    console.log('Firebase: Produto adicionado:', newProduct.name);
-    return { id: productRef.id, ...newProduct };
+    await saveMenuData({
+      ...currentData,
+      products: updatedProducts
+    });
+    
+    console.log('Firebase: Produto adicionado (estrutura antiga):', newProduct.name);
+    return newProduct;
   } catch (error) {
     console.error('Firebase: Erro ao adicionar produto:', error);
     throw error;
   }
 };
 
-// Função para atualizar produto
+// Função para atualizar produto (estrutura antiga)
 export const updateProduct = async (productId, updates) => {
   try {
-    const productRef = doc(db, PRODUCTS_COLLECTION, productId);
-    const dataToUpdate = {
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
+    const currentData = await getMenuData();
+    const updatedProducts = currentData.products.map(product => 
+      product.id === productId 
+        ? { ...product, ...updates, updatedAt: new Date().toISOString() }
+        : product
+    );
     
-    await updateDoc(productRef, dataToUpdate);
-    console.log('Firebase: Produto atualizado:', productId);
+    await saveMenuData({
+      ...currentData,
+      products: updatedProducts
+    });
+    
+    console.log('Firebase: Produto atualizado (estrutura antiga):', productId);
     return true;
   } catch (error) {
     console.error('Firebase: Erro ao atualizar produto:', error);
@@ -147,12 +151,18 @@ export const updateProduct = async (productId, updates) => {
   }
 };
 
-// Função para deletar produto
+// Função para deletar produto (estrutura antiga)
 export const deleteProduct = async (productId) => {
   try {
-    const productRef = doc(db, PRODUCTS_COLLECTION, productId);
-    await deleteDoc(productRef);
-    console.log('Firebase: Produto deletado:', productId);
+    const currentData = await getMenuData();
+    const updatedProducts = currentData.products.filter(product => product.id !== productId);
+    
+    await saveMenuData({
+      ...currentData,
+      products: updatedProducts
+    });
+    
+    console.log('Firebase: Produto deletado (estrutura antiga):', productId);
     return true;
   } catch (error) {
     console.error('Firebase: Erro ao deletar produto:', error);
@@ -160,15 +170,15 @@ export const deleteProduct = async (productId) => {
   }
 };
 
-// Função para definir oferta do dia
+// Função para definir oferta do dia (estrutura antiga)
 export const setDailyOffer = async (offer) => {
   try {
-    const configRef = doc(db, 'menu', MENU_CONFIG_DOC_ID);
-    await updateDoc(configRef, { 
-      dailyOffer: offer,
-      lastUpdate: new Date().toISOString()
+    const currentData = await getMenuData();
+    await saveMenuData({
+      ...currentData,
+      dailyOffer: offer
     });
-    console.log('Firebase: Oferta do dia definida:', offer?.name || 'removida');
+    console.log('Firebase: Oferta do dia definida (estrutura antiga):', offer?.name || 'removida');
     return true;
   } catch (error) {
     console.error('Firebase: Erro ao definir oferta:', error);
@@ -176,16 +186,16 @@ export const setDailyOffer = async (offer) => {
   }
 };
 
-// Função para atualizar configuração Pix
+// Função para atualizar configuração Pix (estrutura antiga)
 export const updatePixConfig = async (pixKey, pixName) => {
   try {
-    const configRef = doc(db, 'menu', MENU_CONFIG_DOC_ID);
-    await updateDoc(configRef, {
+    const currentData = await getMenuData();
+    await saveMenuData({
+      ...currentData,
       pixKey,
-      pixName,
-      lastUpdate: new Date().toISOString()
+      pixName
     });
-    console.log('Firebase: Configuração Pix atualizada');
+    console.log('Firebase: Configuração Pix atualizada (estrutura antiga)');
     return true;
   } catch (error) {
     console.error('Firebase: Erro ao atualizar Pix:', error);
@@ -193,28 +203,19 @@ export const updatePixConfig = async (pixKey, pixName) => {
   }
 };
 
-// Função para limpar todos os dados
+// Função para limpar todos os dados (estrutura antiga)
 export const clearAllData = async () => {
   try {
-    // Limpar configurações
-    const configRef = doc(db, 'menu', MENU_CONFIG_DOC_ID);
-    await setDoc(configRef, {
+    const emptyData = {
+      products: [],
       dailyOffer: null,
       pixKey: '',
       pixName: '',
       lastUpdate: new Date().toISOString()
-    });
+    };
     
-    // Limpar produtos
-    const productsQuery = query(collection(db, PRODUCTS_COLLECTION));
-    const productsSnap = await getDocs(productsQuery);
-    const batch = writeBatch(db);
-    productsSnap.docs.forEach(doc => {
-      batch.delete(doc.ref);
-    });
-    await batch.commit();
-    
-    console.log('Firebase: Todos os dados foram limpos');
+    await saveMenuData(emptyData);
+    console.log('Firebase: Todos os dados foram limpos (estrutura antiga)');
     return true;
   } catch (error) {
     console.error('Firebase: Erro ao limpar dados:', error);
@@ -222,39 +223,38 @@ export const clearAllData = async () => {
   }
 };
 
-// Função para restaurar dados padrão
+// Função para restaurar dados padrão (estrutura antiga)
 export const restoreDefaultData = async () => {
   try {
-    await clearAllData();
+    const defaultData = {
+      products: [
+        {
+          id: 1,
+          name: 'Hot Dog Tradicional',
+          price: 8.50,
+          image: 'https://images.pexels.com/photos/4676401/pexels-photo-4676401.jpeg?auto=compress&cs=tinysrgb&w=400',
+          category: 'Lanches',
+          available: true,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 2,
+          name: 'Hot Dog Especial',
+          price: 12.00,
+          image: 'https://images.pexels.com/photos/1633525/pexels-photo-1633525.jpeg?auto=compress&cs=tinysrgb&w=400',
+          category: 'Lanches',
+          available: true,
+          createdAt: new Date().toISOString()
+        }
+      ],
+      dailyOffer: null,
+      pixKey: '',
+      pixName: '',
+      lastUpdate: new Date().toISOString()
+    };
     
-    // Criar produtos padrão
-    const defaultProducts = [
-      {
-        name: 'Hot Dog Tradicional',
-        price: 8.50,
-        image: 'https://images.pexels.com/photos/4676401/pexels-photo-4676401.jpeg?auto=compress&cs=tinysrgb&w=400',
-        category: 'Lanches',
-        available: true,
-        createdAt: new Date().toISOString()
-      },
-      {
-        name: 'Hot Dog Especial',
-        price: 12.00,
-        image: 'https://images.pexels.com/photos/1633525/pexels-photo-1633525.jpeg?auto=compress&cs=tinysrgb&w=400',
-        category: 'Lanches',
-        available: true,
-        createdAt: new Date().toISOString()
-      }
-    ];
-    
-    const batch = writeBatch(db);
-    defaultProducts.forEach(product => {
-      const productRef = doc(collection(db, PRODUCTS_COLLECTION));
-      batch.set(productRef, product);
-    });
-    await batch.commit();
-    
-    console.log('Firebase: Dados padrão restaurados');
+    await saveMenuData(defaultData);
+    console.log('Firebase: Dados padrão restaurados (estrutura antiga)');
     return true;
   } catch (error) {
     console.error('Firebase: Erro ao restaurar dados padrão:', error);
@@ -262,41 +262,20 @@ export const restoreDefaultData = async () => {
   }
 };
 
-// Função para escutar mudanças em tempo real
+// Função para escutar mudanças em tempo real (estrutura antiga)
 export const subscribeToMenuChanges = (callback) => {
-  const configRef = doc(db, 'menu', MENU_CONFIG_DOC_ID);
-  const productsQuery = query(collection(db, PRODUCTS_COLLECTION), orderBy('createdAt', 'desc'));
+  const docRef = doc(db, 'menu', MENU_DOC_ID);
   
-  let configData = null;
-  let productsData = [];
-  
-  // Escutar mudanças na configuração
-  const configUnsubscribe = onSnapshot(configRef, (doc) => {
+  return onSnapshot(docRef, (doc) => {
     if (doc.exists()) {
-      configData = doc.data();
-      console.log('Firebase: Configuração atualizada:', configData.lastUpdate);
-      if (configData && productsData.length >= 0) {
-        callback({ ...configData, products: productsData });
-      }
+      const data = doc.data();
+      console.log('Firebase: Mudança detectada (estrutura antiga):', data.lastUpdate);
+      callback(data);
+    } else {
+      console.log('Firebase: Documento não existe');
+      callback(null);
     }
   }, (error) => {
-    console.error('Firebase: Erro ao escutar configuração:', error);
+    console.error('Firebase: Erro ao escutar mudanças:', error);
   });
-  
-  // Escutar mudanças nos produtos
-  const productsUnsubscribe = onSnapshot(productsQuery, (snapshot) => {
-    productsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    console.log('Firebase: Produtos atualizados:', productsData.length);
-    if (configData && productsData.length >= 0) {
-      callback({ ...configData, products: productsData });
-    }
-  }, (error) => {
-    console.error('Firebase: Erro ao escutar produtos:', error);
-  });
-  
-  // Retornar função para cancelar ambos os listeners
-  return () => {
-    configUnsubscribe();
-    productsUnsubscribe();
-  };
 }; 
