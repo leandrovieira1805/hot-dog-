@@ -102,6 +102,10 @@ export const MenuProvider = ({ children }) => {
   };
 
   const deleteProduct = async (id) => {
+    if (!id) {
+      console.error('ID do produto para deletar está undefined!');
+      return;
+    }
     await deleteDoc(doc(db, 'products', id));
     setProducts((prev) => prev.filter(p => p.id !== id));
   };
