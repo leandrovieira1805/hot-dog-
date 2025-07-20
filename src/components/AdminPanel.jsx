@@ -251,8 +251,8 @@ const AdminPanel = () => {
                         </select>
                       </div>
                     )}
-                    {/* Exibe campos de sabores/complementos para qualquer variação de 'pastel g' no nome */}
-                    {productForm.name.toLowerCase().replace(/\s+/g, ' ').includes('pastel g') && (
+                    {/* Exibe campos de sabores/complementos para qualquer produto com 'pastel' no nome */}
+                    {/pastel/i.test(productForm.name) && (
                       <>
                         <div className="form-group">
                           <label>Sabores (até 2):</label>
@@ -263,6 +263,7 @@ const AdminPanel = () => {
                           >
                             <option value="bacon">Bacon</option>
                             <option value="carne moida">Carne Moída</option>
+                            <option value="carne seca">Carne Seca</option>
                             <option value="frango">Frango</option>
                             <option value="presunto">Presunto</option>
                             <option value="queijo">Queijo</option>

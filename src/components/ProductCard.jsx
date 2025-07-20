@@ -1,5 +1,5 @@
-import React from 'react';
-import { Plus, Star, Heart } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Star, Heart, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 const ProductCard = ({ product }) => {
@@ -21,19 +21,23 @@ const ProductCard = ({ product }) => {
           <span>4.8</span>
         </div>
       </div>
-      
       <div className="product-content">
         <h3 className="product-title">{product.name}</h3>
         <p className="product-description">
           Delicioso e preparado com ingredientes frescos
         </p>
-        
+        {/* Exibir sabores e complementos se existirem */}
+        {product.sabores && product.sabores.length > 0 && (
+          <p><strong>Sabores:</strong> {product.sabores.join(', ')}</p>
+        )}
+        {product.complementos && product.complementos.length > 0 && (
+          <p><strong>Complementos:</strong> {product.complementos.join(', ')}</p>
+        )}
         <div className="product-footer">
           <div className="price-container">
             <span className="price-label">A partir de</span>
             <span className="product-price">R$ {product.price.toFixed(2)}</span>
           </div>
-          
           <button 
             className="add-btn-modern"
             onClick={handleAddToCart}
