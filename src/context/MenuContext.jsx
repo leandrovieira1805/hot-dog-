@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   getMenuData, 
-  saveMenuData, 
+  saveMenuConfig, 
   addProduct as firebaseAddProduct,
   updateProduct as firebaseUpdateProduct,
   deleteProduct as firebaseDeleteProduct,
@@ -65,14 +65,14 @@ const defaultProducts = [
   }
 ];
 
-// Função para salvar dados no Firebase
-const saveToFirebase = async (data) => {
+// Função para salvar configurações no Firebase
+const saveConfigToFirebase = async (config) => {
   try {
-    await saveMenuData(data);
-    console.log('Dados salvos no Firebase');
+    await saveMenuConfig(config);
+    console.log('Configurações salvas no Firebase');
     return true;
   } catch (error) {
-    console.error('Erro ao salvar no Firebase:', error);
+    console.error('Erro ao salvar configurações no Firebase:', error);
     return false;
   }
 };
@@ -127,19 +127,18 @@ export const MenuProvider = ({ children }) => {
           setPixKey('');
           setPixName('');
           
-          // Salvar dados padrão no Firebase
-          const defaultData = {
-            products: defaultProducts,
+          // Salvar configurações padrão no Firebase
+          const defaultConfig = {
             dailyOffer: null,
             pixKey: '',
             pixName: ''
           };
           
           try {
-            await saveToFirebase(defaultData);
-            console.log('MenuContext: Dados padrão salvos no Firebase');
+            await saveConfigToFirebase(defaultConfig);
+            console.log('MenuContext: Configurações padrão salvas no Firebase');
           } catch (error) {
-            console.log('MenuContext: Erro ao salvar dados padrão no Firebase');
+            console.log('MenuContext: Erro ao salvar configurações padrão no Firebase');
           }
         }
       } catch (error) {
@@ -213,28 +212,15 @@ export const MenuProvider = ({ children }) => {
     };
   }, []);
 
-  // Função para salvar produtos
+  // Função para salvar produtos (não mais necessária com nova estrutura)
   const saveProducts = async (newProducts) => {
     console.log('MenuContext: Salvando produtos:', newProducts.length);
     setProducts(newProducts);
     
-    // Salvar no Firebase
-    setIsSaving(true);
-    const dataToSave = {
-      products: newProducts,
-      dailyOffer,
-      pixKey,
-      pixName
-    };
-    
-    const success = await saveToFirebase(dataToSave);
-    if (success) {
-      console.log('MenuContext: Produtos salvos no Firebase com sucesso');
-      setLastUpdate(new Date().getTime());
-    } else {
-      console.log('MenuContext: Erro ao salvar no Firebase');
-    }
-    setIsSaving(false);
+    // Com a nova estrutura, produtos são salvos individualmente
+    // Esta função não é mais necessária, mas mantida para compatibilidade
+    console.log('MenuContext: Produtos atualizados localmente');
+    setLastUpdate(new Date().getTime());
   };
 
   // Função para adicionar produto
