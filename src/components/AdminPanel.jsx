@@ -155,7 +155,7 @@ const AdminPanel = () => {
             </div>
 
             <div className="products-list">
-              {products.map(product => (
+              {products.filter(product => product.id).map(product => (
                 <div key={product.id} className="admin-product-card">
                   <img src={product.image} alt={product.name} />
                   <div className="product-details">
