@@ -67,7 +67,7 @@ export const MenuProvider = ({ children }) => {
       const offerSnap = await getDoc(doc(db, 'offers', 'oferta_do_dia'));
       if (offerSnap.exists()) {
         setDailyOffer(offerSnap.data());
-      }
+    }
     };
     fetchOffer();
 
@@ -79,7 +79,7 @@ export const MenuProvider = ({ children }) => {
         setPixKey(config.pixKey || '');
         setPixName(config.pixName || '');
         setLastUpdate(config.lastUpdate || '');
-      }
+    }
     };
     fetchConfig();
 
