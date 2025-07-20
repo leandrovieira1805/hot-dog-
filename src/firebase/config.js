@@ -22,13 +22,17 @@ export const db = getFirestore(app);
 // Inicializar Auth
 export const auth = getAuth(app);
 
-// Conectar ao emulador em desenvolvimento
-if (process.env.NODE_ENV === 'development') {
+// Conectar ao emulador apenas em desenvolvimento local
+if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
   try {
-    connectFirestoreEmulator(db, 'localhost', 8080);
-    connectAuthEmulator(auth, 'http://localhost:9099');
+    // Verificar se estamos no navegador e não em produção
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      connectFirestoreEmulator(db, 'localhost', 8080);
+      connectAuthEmulator(auth, 'http://localhost:9099');
+      console.log('Firebase: Conectado ao emulador local');
+    }
   } catch (error) {
-    console.log('Emulador já conectado ou não disponível');
+    console.log('Firebase: Emulador não disponível ou já conectado');
   }
 }
 

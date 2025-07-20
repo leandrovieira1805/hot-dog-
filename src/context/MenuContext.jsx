@@ -103,6 +103,8 @@ export const MenuProvider = ({ children }) => {
   // Carregar dados na inicialização e sincronizar em tempo real
   useEffect(() => {
     console.log('MenuContext: Inicializando com Firebase...');
+    console.log('MenuContext: Ambiente:', process.env.NODE_ENV);
+    console.log('MenuContext: URL atual:', window.location.href);
     
     const loadData = async () => {
       setIsLoading(true);
@@ -166,6 +168,8 @@ export const MenuProvider = ({ children }) => {
       if (data) {
         console.log('MenuContext: Mudança detectada no Firebase, atualizando...');
         console.log(`📦 Produtos recebidos: ${data.products?.length || 0}`);
+        console.log('MenuContext: Timestamp da mudança:', data.lastUpdate);
+        console.log('MenuContext: Produtos IDs:', data.products?.map(p => p.id).slice(-5));
         
         // Debounce para evitar múltiplas atualizações
         if (syncTimeout) {
