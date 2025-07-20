@@ -131,16 +131,25 @@ export const saveMenuData = async (data) => {
         return true;
       }
     } catch (newStructureError) {
-      console.log('Firebase: Erro na nova estrutura, usando estrutura antiga:', newStructureError.message);
+      console.log('Firebase: Erro na nova estrutura:', newStructureError.message);
+      
+      // NÃO usar fallback para estrutura antiga se há muitos produtos
+      if (data.products && data.products.length > 10) {
+        console.error('Firebase: Muitos produtos para estrutura antiga, erro de tamanho evitado');
+        throw new Error('Estrutura antiga não suporta muitos produtos. Use a nova estrutura.');
+      }
+      
+      // Fallback para estrutura antiga APENAS se poucos produtos
+      console.log('Firebase: Usando estrutura antiga para poucos produtos...');
+      const oldRef = doc(db, 'menu', MENU_DATA_DOC_ID);
+      await setDoc(oldRef, {
+        ...data,
+        lastUpdate: new Date().toISOString()
+      });
+      console.log('Firebase: Dados salvos com sucesso (estrutura antiga)');
+      return true;
     }
     
-    // Fallback para estrutura antiga
-    const oldRef = doc(db, 'menu', MENU_DATA_DOC_ID);
-    await setDoc(oldRef, {
-      ...data,
-      lastUpdate: new Date().toISOString()
-    });
-    console.log('Firebase: Dados salvos com sucesso (estrutura antiga)');
     return true;
     
   } catch (error) {
@@ -164,26 +173,36 @@ export const addProduct = async (product) => {
       console.log('Firebase: Produto adicionado (nova estrutura):', newProduct.name);
       return { id: productRef.id, ...newProduct };
     } catch (newStructureError) {
-      console.log('Firebase: Erro na nova estrutura, usando estrutura antiga:', newStructureError.message);
+      console.log('Firebase: Erro na nova estrutura:', newStructureError.message);
+      
+      // Verificar se já há muitos produtos na estrutura antiga
+      const oldRef = doc(db, 'menu', MENU_DATA_DOC_ID);
+      const oldSnap = await getDoc(oldRef);
+      
+      if (oldSnap.exists()) {
+        const currentData = oldSnap.data();
+        if (currentData.products && currentData.products.length > 10) {
+          console.error('Firebase: Muitos produtos na estrutura antiga, erro de tamanho evitado');
+          throw new Error('Estrutura antiga não suporta mais produtos. Use a nova estrutura.');
+        }
+      }
+      
+      // Fallback para estrutura antiga APENAS se poucos produtos
+      console.log('Firebase: Usando estrutura antiga para adicionar produto...');
+      let currentData = { products: [], dailyOffer: null, pixKey: '', pixName: '' };
+      if (oldSnap.exists()) {
+        currentData = oldSnap.data();
+      }
+      
+      const newId = Date.now();
+      const productWithId = { id: newId, ...newProduct };
+      currentData.products.push(productWithId);
+      currentData.lastUpdate = new Date().toISOString();
+      
+      await setDoc(oldRef, currentData);
+      console.log('Firebase: Produto adicionado (estrutura antiga):', newProduct.name);
+      return productWithId;
     }
-    
-    // Fallback para estrutura antiga
-    const oldRef = doc(db, 'menu', MENU_DATA_DOC_ID);
-    const oldSnap = await getDoc(oldRef);
-    
-    let currentData = { products: [], dailyOffer: null, pixKey: '', pixName: '' };
-    if (oldSnap.exists()) {
-      currentData = oldSnap.data();
-    }
-    
-    const newId = Date.now();
-    const productWithId = { id: newId, ...newProduct };
-    currentData.products.push(productWithId);
-    currentData.lastUpdate = new Date().toISOString();
-    
-    await setDoc(oldRef, currentData);
-    console.log('Firebase: Produto adicionado (estrutura antiga):', newProduct.name);
-    return productWithId;
     
   } catch (error) {
     console.error('Firebase: Erro ao adicionar produto:', error);
