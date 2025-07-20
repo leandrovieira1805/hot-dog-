@@ -134,9 +134,12 @@ export const saveMenuData = async (data) => {
       console.log('Firebase: Erro na nova estrutura:', newStructureError.message);
       
       // NÃO usar fallback para estrutura antiga se há muitos produtos
-      if (data.products && data.products.length > 10) {
-        console.error('Firebase: Muitos produtos para estrutura antiga, erro de tamanho evitado');
-        throw new Error('Estrutura antiga não suporta muitos produtos. Use a nova estrutura.');
+      const productCount = data.products?.length || 0;
+      console.log(`Firebase: Verificando dados para salvar - ${productCount} produtos`);
+      
+      if (productCount >= 5) {
+        console.error(`Firebase: Muitos produtos para estrutura antiga (${productCount}/5), erro de tamanho evitado`);
+        throw new Error(`Estrutura antiga não suporta muitos produtos (${productCount}/5). Use a nova estrutura.`);
       }
       
       // Fallback para estrutura antiga APENAS se poucos produtos
@@ -181,9 +184,14 @@ export const addProduct = async (product) => {
       
       if (oldSnap.exists()) {
         const currentData = oldSnap.data();
-        if (currentData.products && currentData.products.length > 10) {
-          console.error('Firebase: Muitos produtos na estrutura antiga, erro de tamanho evitado');
-          throw new Error('Estrutura antiga não suporta mais produtos. Use a nova estrutura.');
+        const currentProductCount = currentData.products?.length || 0;
+        
+        console.log(`Firebase: Verificando estrutura antiga - ${currentProductCount} produtos existentes`);
+        
+        // Limite mais rigoroso: máximo 5 produtos na estrutura antiga
+        if (currentProductCount >= 5) {
+          console.error(`Firebase: Estrutura antiga tem ${currentProductCount} produtos, erro de tamanho evitado`);
+          throw new Error(`Estrutura antiga não suporta mais produtos (${currentProductCount}/5). Use a nova estrutura.`);
         }
       }
       
