@@ -27,7 +27,10 @@ const AdminPanel = () => {
     name: '',
     price: '',
     image: '',
-    imageFile: null // novo campo para o arquivo
+    imageFile: null,
+    tipo: '',
+    sabores: [], // novo campo para sabores do pastel
+    complementos: [] // novo campo para complementos do pastel
   });
 
   const [offerForm, setOfferForm] = useState({
@@ -53,11 +56,27 @@ const AdminPanel = () => {
     setProductForm((prev) => ({ ...prev, imageFile: file }));
   };
 
+  // Handler para seleção múltipla de sabores (corrigido)
+  const handleSaboresChange = (e) => {
+    const options = Array.from(e.target.options);
+    const selected = options.filter(o => o.selected).map(o => o.value);
+    if (selected.length <= 2) {
+      setProductForm(prev => ({ ...prev, sabores: selected }));
+    }
+  };
+  // Handler para seleção múltipla de complementos (corrigido)
+  const handleComplementosChange = (e) => {
+    const options = Array.from(e.target.options);
+    const selected = options.filter(o => o.selected).map(o => o.value);
+    if (selected.length <= 3) {
+      setProductForm(prev => ({ ...prev, complementos: selected }));
+    }
+  };
+
   const handleProductSubmit = async (e) => {
     e.preventDefault();
     let imageUrl = productForm.image;
     if (productForm.imageFile) {
-      // Upload da imagem para o Firebase Storage
       const imageRef = ref(storage, `products/${Date.now()}_${productForm.imageFile.name}`);
       await uploadBytes(imageRef, productForm.imageFile);
       imageUrl = await getDownloadURL(imageRef);
@@ -65,7 +84,10 @@ const AdminPanel = () => {
     const productData = {
       name: productForm.name,
       price: parseFloat(productForm.price),
-      image: imageUrl
+      image: imageUrl,
+      ...(productForm.tipo && { tipo: productForm.tipo }),
+      ...(productForm.sabores && productForm.sabores.length > 0 && { sabores: productForm.sabores }),
+      ...(productForm.complementos && productForm.complementos.length > 0 && { complementos: productForm.complementos })
     };
     if (editingProduct) {
       updateProduct(editingProduct.id, productData);
@@ -73,7 +95,7 @@ const AdminPanel = () => {
     } else {
       addProduct(productData);
     }
-    setProductForm({ name: '', price: '', image: '', imageFile: null });
+    setProductForm({ name: '', price: '', image: '', imageFile: null, tipo: '', sabores: [], complementos: [] });
     setShowProductForm(false);
   };
 
@@ -82,7 +104,10 @@ const AdminPanel = () => {
     setProductForm({
       name: product.name,
       price: product.price.toString(),
-      image: product.image
+      image: product.image,
+      tipo: product.tipo || '', // Adiciona o tipo ao estado do formulário
+      sabores: product.sabores || [], // Adiciona os sabores ao estado do formulário
+      complementos: product.complementos || [] // Adiciona os complementos ao estado do formulário
     });
     setShowProductForm(true);
   };
@@ -145,7 +170,7 @@ const AdminPanel = () => {
                 className="add-btn"
                 onClick={() => {
                   setEditingProduct(null);
-                  setProductForm({ name: '', price: '', image: '', imageFile: null });
+                  setProductForm({ name: '', price: '', image: '', imageFile: null, tipo: '', sabores: [], complementos: [] });
                   setShowProductForm(true);
                 }}
               >
@@ -161,6 +186,15 @@ const AdminPanel = () => {
                   <div className="product-details">
                     <h3>{product.name}</h3>
                     <p>R$ {product.price.toFixed(2)}</p>
+                    {product.tipo && (
+                      <p>Tipo: {product.tipo === 'misto' ? 'Misto' : 'Salsicha'}</p>
+                    )}
+                    {product.sabores && product.sabores.length > 0 && (
+                      <p>Sabores: {product.sabores.join(', ')}</p>
+                    )}
+                    {product.complementos && product.complementos.length > 0 && (
+                      <p>Complementos: {product.complementos.join(', ')}</p>
+                    )}
                   </div>
                   <div className="product-actions">
                     <button 
@@ -203,6 +237,58 @@ const AdminPanel = () => {
                         required
                       />
                     </div>
+                    {productForm.name.toLowerCase().includes('enroladinho') && (
+                      <div className="form-group">
+                        <label>Tipo do Enroladinho:</label>
+                        <select
+                          value={productForm.tipo}
+                          onChange={e => setProductForm({...productForm, tipo: e.target.value})}
+                          required
+                        >
+                          <option value="">Selecione</option>
+                          <option value="misto">Misto</option>
+                          <option value="salsicha">Salsicha</option>
+                        </select>
+                      </div>
+                    )}
+                    {/* Exibe campos de sabores/complementos para qualquer variação de 'pastel g' no nome */}
+                    {productForm.name.toLowerCase().replace(/\s+/g, ' ').includes('pastel g') && (
+                      <>
+                        <div className="form-group">
+                          <label>Sabores (até 2):</label>
+                          <select
+                            multiple
+                            value={productForm.sabores}
+                            onChange={handleSaboresChange}
+                          >
+                            <option value="bacon">Bacon</option>
+                            <option value="carne moida">Carne Moída</option>
+                            <option value="frango">Frango</option>
+                            <option value="presunto">Presunto</option>
+                            <option value="queijo">Queijo</option>
+                          </select>
+                          <small>Segure Ctrl (Windows) ou Cmd (Mac) para selecionar mais de um.</small>
+                          {productForm.sabores.length > 2 && <div style={{color:'red'}}>Selecione no máximo 2 sabores.</div>}
+                        </div>
+                        <div className="form-group">
+                          <label>Complementos (até 3):</label>
+                          <select
+                            multiple
+                            value={productForm.complementos}
+                            onChange={handleComplementosChange}
+                          >
+                            <option value="azeitona">Azeitona</option>
+                            <option value="catupiry">Catupiry</option>
+                            <option value="cheddar">Cheddar</option>
+                            <option value="cebola">Cebola</option>
+                            <option value="tomate">Tomate</option>
+                            <option value="milho">Milho</option>
+                          </select>
+                          <small>Segure Ctrl (Windows) ou Cmd (Mac) para selecionar mais de um.</small>
+                          {productForm.complementos.length > 3 && <div style={{color:'red'}}>Selecione no máximo 3 complementos.</div>}
+                        </div>
+                      </>
+                    )}
 
                     <div className="form-group">
                       <label>Preço (R$):</label>
