@@ -195,8 +195,19 @@ export const setDailyOffer = async (offer) => {
 // Função para atualizar configuração Pix
 export const updatePixConfig = async (pixKey, pixName) => {
   try {
-    await updateMenuData({ pixKey, pixName });
-    console.log('Firebase: Configuração Pix atualizada');
+    // Obter dados atuais para preservar produtos
+    const currentData = await getMenuData();
+    
+    // Atualizar apenas as configurações Pix, mantendo produtos intactos
+    const updatedData = {
+      ...currentData,
+      pixKey,
+      pixName,
+      lastUpdate: new Date().toISOString()
+    };
+    
+    await saveMenuData(updatedData);
+    console.log('Firebase: Configuração Pix atualizada sem afetar produtos');
     return true;
   } catch (error) {
     console.error('Firebase: Erro ao atualizar Pix:', error);

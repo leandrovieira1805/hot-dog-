@@ -173,13 +173,25 @@ export const MenuProvider = ({ children }) => {
         }
         
         const timeout = setTimeout(() => {
-          // Sempre atualizar com os dados mais recentes do Firebase
-          // Isso garante que não perdemos sincronização
-          setProducts(data.products || []);
-          setDailyOffer(data.dailyOffer || null);
-          setPixKey(data.pixKey || '');
-          setPixName(data.pixName || '');
-          setLastUpdate(new Date(data.lastUpdate).getTime());
+          // Verificar se é apenas mudança nas configurações Pix
+          const currentProductCount = products.length;
+          const newProductCount = data.products?.length || 0;
+          const isOnlyPixChange = currentProductCount === newProductCount && 
+                                 (pixKey !== data.pixKey || pixName !== data.pixName);
+          
+          if (isOnlyPixChange) {
+            console.log('💳 Apenas configurações Pix alteradas, atualizando apenas Pix');
+            setPixKey(data.pixKey || '');
+            setPixName(data.pixName || '');
+            setLastUpdate(new Date(data.lastUpdate).getTime());
+          } else {
+            // Atualizar todos os dados
+            setProducts(data.products || []);
+            setDailyOffer(data.dailyOffer || null);
+            setPixKey(data.pixKey || '');
+            setPixName(data.pixName || '');
+            setLastUpdate(new Date(data.lastUpdate).getTime());
+          }
           
           console.log('✅ Dados atualizados com sucesso');
         }, 100); // 100ms de debounce

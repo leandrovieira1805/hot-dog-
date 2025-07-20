@@ -58,7 +58,15 @@ const AdminPanel = () => {
   const handlePixChange = (key, name) => {
     setLocalPixKey(key);
     setLocalPixName(name);
-    updatePixConfig(key, name);
+    
+    // Debounce para evitar múltiplas atualizações
+    if (window.pixTimeout) {
+      clearTimeout(window.pixTimeout);
+    }
+    
+    window.pixTimeout = setTimeout(() => {
+      updatePixConfig(key, name);
+    }, 500); // 500ms de debounce
   };
 
   useEffect(() => {
