@@ -12,6 +12,7 @@ const CustomerView = () => {
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [selectedSubcategory, setSelectedSubcategory] = useState('Todos');
 
   useEffect(() => {
     if (dailyOffer) {
@@ -23,16 +24,29 @@ const CustomerView = () => {
     }
   }, [dailyOffer]);
 
-  const categories = ['Todos', 'Lanches', 'Cuscuz', 'Bebidas', 'Combo de Salgados', 'Doces'];
+  const categories = ['Todos', 'Hambúrgueres', 'Petiscos', 'Bebidas', 'Hot Dog', 'Bolos', 'Batata', 'Cuscuz'];
+  const burgerSubcategories = ['Todos', 'Tradicional', 'Artesanal'];
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'Todos' || 
-      (selectedCategory === 'Lanches' && product.category === 'Lanches') ||
-      (selectedCategory === 'Cuscuz' && product.category === 'Cuscuz') ||
-      (selectedCategory === 'Bebidas' && product.category === 'Bebidas') ||
-      (selectedCategory === 'Combo de Salgados' && product.category === 'Combo de Salgados') ||
-      (selectedCategory === 'Doces' && product.category === 'Doces');
+    // Compatibilidade com dados antigos: normaliza categoria
+    const productCategory = (product.category || '').toLowerCase();
+    const selected = selectedCategory.toLowerCase();
+    let matchesCategory = selectedCategory === 'Todos';
+    if (!matchesCategory) {
+      if (selected === 'hambúrgueres' || selected === 'hamburgueres') {
+        // Considera "hambúrgueres" como guarda-chuva
+        matchesCategory = ['hambúrgueres','hamburgueres','hamburguer','hamburgers','burger'].some(c => productCategory === c);
+        // Se subcategoria foi escolhida, filtra também
+        if (matchesCategory && selectedSubcategory !== 'Todos') {
+          const sub = (product.subcategory || '').toLowerCase();
+          const wanted = selectedSubcategory.toLowerCase();
+          matchesCategory = sub === wanted;
+        }
+      } else {
+        matchesCategory = productCategory === selected;
+      }
+    }
     const isAvailable = product.available !== false;
     return matchesSearch && matchesCategory && isAvailable;
   });
@@ -87,12 +101,25 @@ const CustomerView = () => {
               <button
                 key={category}
                 className={`category-tab ${selectedCategory === category ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => { setSelectedCategory(category); setSelectedSubcategory('Todos'); }}
               >
                 {category}
               </button>
             ))}
           </div>
+          {selectedCategory === 'Hambúrgueres' && (
+            <div className="categories-tabs" style={{ marginTop: '0.75rem' }}>
+              {burgerSubcategories.map(sub => (
+                <button
+                  key={sub}
+                  className={`category-tab ${selectedSubcategory === sub ? 'active' : ''}`}
+                  onClick={() => setSelectedSubcategory(sub)}
+                >
+                  {sub}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
