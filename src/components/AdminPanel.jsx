@@ -36,6 +36,7 @@ const AdminPanel = () => {
     price: '',
     image: '',
     category: 'Lanches',
+    subcategory: 'Tradicional',
     available: true
   });
 
@@ -105,6 +106,7 @@ const AdminPanel = () => {
       price: parseFloat(productForm.price),
       image: productForm.image,
       category: productForm.category,
+      ...(productForm.category === 'Hambúrgueres' ? { subcategory: productForm.subcategory || 'Tradicional' } : {}),
       available: productForm.available
     };
 
@@ -115,7 +117,7 @@ const AdminPanel = () => {
       addProduct(productData);
     }
 
-    setProductForm({ name: '', price: '', image: '', category: 'Lanches', available: true });
+    setProductForm({ name: '', price: '', image: '', category: 'Lanches', subcategory: 'Tradicional', available: true });
     setShowProductForm(false);
   };
 
@@ -126,6 +128,7 @@ const AdminPanel = () => {
       price: product.price.toString(),
       image: product.image,
       category: product.category || 'Lanches',
+      subcategory: product.subcategory || 'Tradicional',
       available: product.available !== false
     });
     setShowProductForm(true);
@@ -244,7 +247,7 @@ const AdminPanel = () => {
                 className="add-btn"
                 onClick={() => {
                   setEditingProduct(null);
-                  setProductForm({ name: '', price: '', image: '', category: 'Lanches', available: true });
+                  setProductForm({ name: '', price: '', image: '', category: 'Lanches', subcategory: 'Tradicional', available: true });
                   setShowProductForm(true);
                 }}
               >
