@@ -9,6 +9,7 @@ import {
   updatePixConfig as firebaseUpdatePixConfig,
   updateWhatsAppNumber as firebaseUpdateWhatsAppNumber,
   updateDeliveryFees as firebaseUpdateDeliveryFees,
+  updateAddOns as firebaseUpdateAddOns,
   clearAllData as firebaseClearAllData,
   restoreDefaultData as firebaseRestoreDefaultData,
   subscribeToMenuChanges
@@ -120,6 +121,12 @@ export const MenuProvider = ({ children }) => {
     { name: 'Lagoa Grande', fee: 4 },
     { name: 'Izacolândia', fee: 5 }
   ]);
+  const [addOns, setAddOns] = useState([
+    { name: 'Bacon', price: 3.50 },
+    { name: 'Queijo Extra', price: 2.00 },
+    { name: 'Cebola Caramelizada', price: 1.50 },
+    { name: 'Cogumelos', price: 2.50 }
+  ]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -146,6 +153,12 @@ export const MenuProvider = ({ children }) => {
           setPixName(firebaseData.pixName || '');
           setWhatsappNumber(firebaseData.whatsappNumber || '');
           setDeliveryFees(normalizeDeliveryFees(firebaseData.deliveryFees));
+          setAddOns(firebaseData.addOns || [
+            { name: 'Bacon', price: 3.50 },
+            { name: 'Queijo Extra', price: 2.00 },
+            { name: 'Cebola Caramelizada', price: 1.50 },
+            { name: 'Cogumelos', price: 2.50 }
+          ]);
           setLastUpdate(new Date(firebaseData.lastUpdate).getTime());
         } else {
           console.log('MenuContext: Firebase não disponível, usando dados padrão');
@@ -365,6 +378,17 @@ export const MenuProvider = ({ children }) => {
     }
   };
 
+  // Função para atualizar adicionais
+  const updateAddOns = async (newAddOns) => {
+    try {
+      await firebaseUpdateAddOns(newAddOns);
+      console.log('MenuContext: Adicionais salvos no Firebase com sucesso');
+    } catch (error) {
+      console.error('MenuContext: Erro ao salvar adicionais:', error);
+      throw error;
+    }
+  };
+
   // Função de login
   const login = (username, password) => {
     if (username === 'admin' && password === 'hotdog123') {
@@ -441,6 +465,7 @@ export const MenuProvider = ({ children }) => {
       pixName,
       whatsappNumber,
       deliveryFees,
+      addOns,
       isLoading,
       isSaving,
       lastUpdate,
@@ -451,6 +476,7 @@ export const MenuProvider = ({ children }) => {
       updatePixConfig,
       updateWhatsapp,
       updateFees,
+      updateAddOns,
       login,
       logout,
       forceRefresh,

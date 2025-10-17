@@ -12,6 +12,7 @@ const AdminPanel = () => {
     pixName,
     whatsappNumber,
     deliveryFees,
+    addOns,
     lastUpdate,
     isSaving,
     addProduct, 
@@ -21,6 +22,7 @@ const AdminPanel = () => {
     updatePixConfig,
     updateWhatsapp,
     updateFees,
+    updateAddOns,
     forceRefresh,
     clearData,
     restoreDefaults,
@@ -54,6 +56,7 @@ const AdminPanel = () => {
   const [localPixName, setLocalPixName] = useState(pixName || '');
   const [localWhatsapp, setLocalWhatsapp] = useState(whatsappNumber || '');
   const [localFees, setLocalFees] = useState(deliveryFees || []);
+  const [localAddOns, setLocalAddOns] = useState(addOns || []);
 
   // Sincronizar com o contexto
   useEffect(() => {
@@ -68,6 +71,10 @@ const AdminPanel = () => {
   useEffect(() => {
     setLocalFees(deliveryFees || []);
   }, [deliveryFees]);
+
+  useEffect(() => {
+    setLocalAddOns(addOns || []);
+  }, [addOns]);
 
   // Salvar Pix no contexto ao alterar
   const handlePixChange = (key, name) => {
@@ -120,6 +127,33 @@ const AdminPanel = () => {
     const newFees = (localFees || []).filter((_, i) => i !== index);
     setLocalFees(newFees);
     saveFeesDebounced(newFees);
+  };
+
+  const saveAddOnsDebounced = (addOnsArray) => {
+    if (window.addOnsTimeout) clearTimeout(window.addOnsTimeout);
+    window.addOnsTimeout = setTimeout(() => {
+      updateAddOns(addOnsArray);
+    }, 400);
+  };
+
+  const handleAddAddOn = () => {
+    const newAddOns = [...(localAddOns || []), { name: '', price: 0 }];
+    setLocalAddOns(newAddOns);
+    saveAddOnsDebounced(newAddOns);
+  };
+
+  const handleChangeAddOn = (index, field, value) => {
+    const newAddOns = (localAddOns || []).map((item, i) =>
+      i === index ? { ...item, [field]: field === 'price' ? Number(value || 0) : value } : item
+    );
+    setLocalAddOns(newAddOns);
+    saveAddOnsDebounced(newAddOns);
+  };
+
+  const handleRemoveAddOn = (index) => {
+    const newAddOns = (localAddOns || []).filter((_, i) => i !== index);
+    setLocalAddOns(newAddOns);
+    saveAddOnsDebounced(newAddOns);
   };
 
   useEffect(() => {
@@ -292,6 +326,38 @@ const AdminPanel = () => {
             onClick={handleAddLocation}
             style={{marginTop:'6px', background:'#10b981', color:'#fff', border:'none', padding:'0.6rem 0.8rem', borderRadius:'8px', cursor:'pointer'}}
           >Adicionar Localidade</button>
+        </div>
+        
+        <div className="form-group" style={{marginTop:'1.5rem'}}>
+          <label style={{color:'#fff', display:'block', marginBottom:'0.5rem'}}>Adicionais para Hambúrgueres Artesanais</label>
+          {(localAddOns || []).map((addOn, idx) => (
+            <div key={idx} style={{display:'flex', gap:'8px', alignItems:'center', marginBottom:'8px'}}>
+              <input 
+                type="text" 
+                placeholder="Nome do adicional"
+                value={addOn.name}
+                onChange={e => handleChangeAddOn(idx, 'name', e.target.value)}
+                style={{flex:2}}
+              />
+              <input 
+                type="number" step="0.01"
+                placeholder="Preço (R$)"
+                value={addOn.price}
+                onChange={e => handleChangeAddOn(idx, 'price', e.target.value)}
+                style={{flex:1}}
+              />
+              <button 
+                type="button"
+                onClick={() => handleRemoveAddOn(idx)}
+                style={{background:'#dc2626', color:'#fff', border:'none', padding:'0.6rem 0.8rem', borderRadius:'8px', cursor:'pointer'}}
+              >Remover</button>
+            </div>
+          ))}
+          <button 
+            type="button"
+            onClick={handleAddAddOn}
+            style={{marginTop:'6px', background:'#3b82f6', color:'#fff', border:'none', padding:'0.6rem 0.8rem', borderRadius:'8px', cursor:'pointer'}}
+          >Adicionar Adicional</button>
         </div>
       </div>
 

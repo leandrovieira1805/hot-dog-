@@ -25,6 +25,7 @@ const Cart = () => {
   const [deliveryLocation, setDeliveryLocation] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('pix');
   const [changeValue, setChangeValue] = useState('');
+  const [observations, setObservations] = useState('');
 
   // Chave Pix e recebedor vindos do painel (MenuContext/Firebase), com fallback
   const pixKey = contextPixKey || localStorage.getItem('pixKey') || '';
@@ -65,6 +66,9 @@ const Cart = () => {
     }
     if (paymentMethod === 'pix') {
       msg += `Chave Pix: ${pixKey}\nRecebedor: ${pixName}\n`;
+    }
+    if (observations.trim()) {
+      msg += `\n*Observações:* ${observations}\n`;
     }
     const phone = (whatsappNumber && whatsappNumber.trim()) || '5587996175314';
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
@@ -215,6 +219,15 @@ const Cart = () => {
                           <input type="text" value={pixName} readOnly />
                         </div>
                       )}
+                      <div className="form-group">
+                        <label>Observações (opcional):</label>
+                        <textarea 
+                          value={observations} 
+                          onChange={e => setObservations(e.target.value)}
+                          placeholder="Ex: Sem cebola, sem tomate, bem assado..."
+                          rows="3"
+                        />
+                      </div>
                       <div style={{margin: '12px 0', textAlign: 'center'}}>
                         <strong>Total com taxa: R$ {total.toFixed(2)}</strong>
                       </div>

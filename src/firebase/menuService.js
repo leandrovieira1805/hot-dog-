@@ -318,6 +318,22 @@ export const updateDeliveryFees = async (fees) => {
   }
 };
 
+// Atualizar adicionais (nova estrutura)
+export const updateAddOns = async (addOns) => {
+  try {
+    const configRef = doc(db, 'menu', MENU_CONFIG_DOC_ID);
+    await updateDoc(configRef, {
+      addOns: addOns,
+      lastUpdate: new Date().toISOString()
+    });
+    console.log('Firebase: Adicionais atualizados');
+    return true;
+  } catch (error) {
+    console.error('Firebase: Erro ao atualizar adicionais:', error);
+    throw error;
+  }
+};
+
 // Função para limpar todos os dados (nova estrutura)
 export const clearAllData = async () => {
   try {

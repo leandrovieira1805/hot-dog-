@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Plus, Star, Heart, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useMenu } from '../context/MenuContext';
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
+  const { addOns } = useMenu();
   const [showCustomization, setShowCustomization] = useState(false);
   const [selectedFlavors, setSelectedFlavors] = useState([]);
   const [selectedComplements, setSelectedComplements] = useState([]);
+  const [selectedAddOns, setSelectedAddOns] = useState([]);
 
   const flavors = ['Bacon', 'Carne moída', 'Carne seca', 'Frango', 'Presunto', 'Queijo'];
   const complements = ['Azeitona', 'Catupiry', 'Cheddar', 'Cebola', 'Tomate', 'Milho'];
@@ -15,6 +18,8 @@ const ProductCard = ({ product }) => {
     if (product.name.toLowerCase().includes('pastel g')) {
       setShowCustomization(true);
     } else if (product.name.toLowerCase().includes('enroladinho')) {
+      setShowCustomization(true);
+    } else if (product.category === 'Hambúrgueres' && product.subcategory === 'Artesanal') {
       setShowCustomization(true);
     } else {
     addToCart(product);
@@ -37,27 +42,44 @@ const ProductCard = ({ product }) => {
     }
   };
 
+  const handleAddOnToggle = (addOn) => {
+    if (selectedAddOns.find(item => item.name === addOn.name)) {
+      setSelectedAddOns(selectedAddOns.filter(item => item.name !== addOn.name));
+    } else {
+      setSelectedAddOns([...selectedAddOns, addOn]);
+    }
+  };
+
   const handleAddCustomizedToCart = () => {
     let customizedName = product.name;
+    let totalPrice = product.price;
     
     if (product.name.toLowerCase().includes('pastel g')) {
       customizedName = `${product.name} - ${selectedFlavors.join(', ')}${selectedComplements.length > 0 ? ` + ${selectedComplements.join(', ')}` : ''}`;
     } else if (product.name.toLowerCase().includes('enroladinho')) {
       customizedName = `${product.name} - ${selectedFlavors.join(', ')}`;
+    } else if (product.category === 'Hambúrgueres' && product.subcategory === 'Artesanal') {
+      const addOnNames = selectedAddOns.map(addOn => addOn.name);
+      const addOnPrice = selectedAddOns.reduce((total, addOn) => total + addOn.price, 0);
+      totalPrice = product.price + addOnPrice;
+      customizedName = `${product.name}${addOnNames.length > 0 ? ` + ${addOnNames.join(', ')}` : ''}`;
     }
     
     const customizedProduct = {
       ...product,
       name: customizedName,
+      price: totalPrice,
       customizations: {
         flavors: selectedFlavors,
-        complements: selectedComplements
+        complements: selectedComplements,
+        addOns: selectedAddOns
       }
     };
     addToCart(customizedProduct);
     setShowCustomization(false);
     setSelectedFlavors([]);
     setSelectedComplements([]);
+    setSelectedAddOns([]);
   };
 
   return (
@@ -102,7 +124,37 @@ const ProductCard = ({ product }) => {
             </div>
             
             <div className="customization-content">
-              {product.name.toLowerCase().includes('pastel g') ? (
+              {product.category === 'Hambúrgueres' && product.subcategory === 'Artesanal' ? (
+                <>
+                  <div className="flavors-section">
+                    <h4>Adicionais disponíveis:</h4>
+                    <div className="options-grid">
+                      {(addOns || []).map(addOn => (
+                        <button
+                          key={addOn.name}
+                          className={`option-btn ${selectedAddOns.find(item => item.name === addOn.name) ? 'selected' : ''}`}
+                          onClick={() => handleAddOnToggle(addOn)}
+                        >
+                          {addOn.name} (+R$ {addOn.price.toFixed(2)})
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="customization-summary">
+                    <p><strong>Hambúrguer Artesanal:</strong> R$ {product.price.toFixed(2)}</p>
+                    {selectedAddOns.length > 0 && (
+                      <>
+                        <p><strong>Adicionais selecionados:</strong></p>
+                        {selectedAddOns.map((addOn, index) => (
+                          <p key={index}>• {addOn.name} (+R$ {addOn.price.toFixed(2)})</p>
+                        ))}
+                        <p><strong>Total: R$ {(product.price + selectedAddOns.reduce((total, addOn) => total + addOn.price, 0)).toFixed(2)}</strong></p>
+                      </>
+                    )}
+                  </div>
+                </>
+              ) : product.name.toLowerCase().includes('pastel g') ? (
                 <>
                   <div className="flavors-section">
                     <h4>Escolha até 2 sabores:</h4>
@@ -167,7 +219,10 @@ const ProductCard = ({ product }) => {
               <button 
                 className="add-customized-btn"
                 onClick={handleAddCustomizedToCart}
-                disabled={selectedFlavors.length === 0}
+                disabled={
+                  (product.name.toLowerCase().includes('pastel g') && selectedFlavors.length === 0) ||
+                  (product.name.toLowerCase().includes('enroladinho') && selectedFlavors.length === 0)
+                }
               >
                 Adicionar ao Carrinho
               </button>
