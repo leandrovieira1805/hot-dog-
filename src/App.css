@@ -12,6 +12,14 @@ body {
   overflow-x: hidden;
 }
 
+/* Padrão de inputs (claros) - garante texto visível ao digitar */
+input, select, textarea {
+  color: #1a1a1a;
+}
+input::placeholder, textarea::placeholder {
+  color: #9ca3af;
+}
+
 .App {
   min-height: 100vh;
 }
@@ -1417,6 +1425,15 @@ body {
 .checkout-modal-content input[readonly] {
   background: #232323;
   color: #aaa;
+}
+
+/* Inputs do bloco de configurações (admin) escuros para melhor contraste */
+.pix-config input,
+.pix-config select,
+.pix-config textarea {
+  background: #232323;
+  color: #fff;
+  border: 1px solid #333;
 }
 
 .checkout-modal-content input:focus,
