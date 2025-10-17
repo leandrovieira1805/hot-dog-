@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useMenu } from '../context/MenuContext';
 
 const Cart = () => {
   const { 
@@ -11,6 +12,7 @@ const Cart = () => {
     getTotalPrice,
     clearCart 
   } = useCart();
+  const { pixKey: contextPixKey, pixName: contextPixName } = useMenu();
 
   // Estados para o fluxo de finalização
   const [showCheckout, setShowCheckout] = useState(false);
@@ -21,9 +23,9 @@ const Cart = () => {
   const [paymentMethod, setPaymentMethod] = useState('pix');
   const [changeValue, setChangeValue] = useState('');
 
-  // Buscar Pix do localStorage
-  const pixKey = localStorage.getItem('pixKey') || '55999211477';
-  const pixName = localStorage.getItem('pixName') || 'Nome do Recebedor';
+  // Chave Pix e recebedor vindos do painel (MenuContext/Firebase), com fallback
+  const pixKey = contextPixKey || localStorage.getItem('pixKey') || '';
+  const pixName = contextPixName || localStorage.getItem('pixName') || '';
 
   const total = getTotalPrice() + Number(deliveryFee);
 
