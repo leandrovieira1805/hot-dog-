@@ -1220,6 +1220,25 @@ body {
   .header-content {
     padding: 0.5rem;
   }
+  /* Centralização geral no mobile */
+  .customer-view,
+  .container,
+  .section-header,
+  .hero-content,
+  .categories-tabs,
+  .cart-footer,
+  .cart-header {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .categories-tabs {
+    justify-content: center;
+  }
+  .cart {
+    margin-left: auto;
+    margin-right: auto;
+  }
   .hero-logo {
     max-width: 180px !important;
   }
