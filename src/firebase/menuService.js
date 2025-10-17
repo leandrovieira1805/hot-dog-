@@ -282,6 +282,22 @@ export const updatePixConfig = async (pixKey, pixName) => {
   }
 };
 
+// Atualizar número de WhatsApp (nova estrutura)
+export const updateWhatsAppNumber = async (whatsappNumber) => {
+  try {
+    const configRef = doc(db, 'menu', MENU_CONFIG_DOC_ID);
+    await updateDoc(configRef, {
+      whatsappNumber,
+      lastUpdate: new Date().toISOString()
+    });
+    console.log('Firebase: WhatsApp atualizado (nova estrutura)');
+    return true;
+  } catch (error) {
+    console.error('Firebase: Erro ao atualizar WhatsApp:', error);
+    throw error;
+  }
+};
+
 // Função para limpar todos os dados (nova estrutura)
 export const clearAllData = async () => {
   try {

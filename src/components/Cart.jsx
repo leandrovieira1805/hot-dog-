@@ -12,7 +12,7 @@ const Cart = () => {
     getTotalPrice,
     clearCart 
   } = useCart();
-  const { pixKey: contextPixKey, pixName: contextPixName } = useMenu();
+  const { pixKey: contextPixKey, pixName: contextPixName, whatsappNumber } = useMenu();
 
   // Estados para o fluxo de finalização
   const [showCheckout, setShowCheckout] = useState(false);
@@ -53,7 +53,8 @@ const Cart = () => {
     if (paymentMethod === 'pix') {
       msg += `Chave Pix: ${pixKey}\nRecebedor: ${pixName}\n`;
     }
-    const url = `https://wa.me/5587996175314?text=${encodeURIComponent(msg)}`;
+    const phone = (whatsappNumber && whatsappNumber.trim()) || '5587996175314';
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
     clearCart();
     setIsCartOpen(false);

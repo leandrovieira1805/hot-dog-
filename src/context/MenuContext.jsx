@@ -7,6 +7,7 @@ import {
   deleteProduct as firebaseDeleteProduct,
   setDailyOffer as firebaseSetDailyOffer,
   updatePixConfig as firebaseUpdatePixConfig,
+  updateWhatsAppNumber as firebaseUpdateWhatsAppNumber,
   clearAllData as firebaseClearAllData,
   restoreDefaultData as firebaseRestoreDefaultData,
   subscribeToMenuChanges
@@ -95,6 +96,7 @@ export const MenuProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pixKey, setPixKey] = useState('');
   const [pixName, setPixName] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -119,6 +121,7 @@ export const MenuProvider = ({ children }) => {
           setDailyOffer(firebaseData.dailyOffer || null);
           setPixKey(firebaseData.pixKey || '');
           setPixName(firebaseData.pixName || '');
+          setWhatsappNumber(firebaseData.whatsappNumber || '');
           setLastUpdate(new Date(firebaseData.lastUpdate).getTime());
         } else {
           console.log('MenuContext: Firebase não disponível, usando dados padrão');
@@ -126,13 +129,15 @@ export const MenuProvider = ({ children }) => {
           setDailyOffer(null);
           setPixKey('');
           setPixName('');
+          setWhatsappNumber('');
           
           // Salvar dados padrão no Firebase
           const defaultData = {
             products: defaultProducts,
             dailyOffer: null,
             pixKey: '',
-            pixName: ''
+            pixName: '',
+            whatsappNumber: ''
           };
           
           try {
@@ -177,16 +182,17 @@ export const MenuProvider = ({ children }) => {
         }
         
         const timeout = setTimeout(() => {
-          // Verificar se é apenas mudança nas configurações Pix
+          // Verificar se é apenas mudança nas configurações
           const currentProductCount = products.length;
           const newProductCount = data.products?.length || 0;
-          const isOnlyPixChange = currentProductCount === newProductCount && 
-                                 (pixKey !== data.pixKey || pixName !== data.pixName);
+          const isOnlyConfigChange = currentProductCount === newProductCount && 
+                                 (pixKey !== data.pixKey || pixName !== data.pixName || whatsappNumber !== (data.whatsappNumber || ''));
           
-          if (isOnlyPixChange) {
-            console.log('💳 Apenas configurações Pix alteradas, atualizando apenas Pix');
+          if (isOnlyConfigChange) {
+            console.log('⚙️ Apenas configurações alteradas, atualizando contexto');
             setPixKey(data.pixKey || '');
             setPixName(data.pixName || '');
+            setWhatsappNumber(data.whatsappNumber || '');
             setLastUpdate(new Date(data.lastUpdate).getTime());
           } else {
             // Atualizar todos os dados
@@ -194,6 +200,7 @@ export const MenuProvider = ({ children }) => {
             setDailyOffer(data.dailyOffer || null);
             setPixKey(data.pixKey || '');
             setPixName(data.pixName || '');
+            setWhatsappNumber(data.whatsappNumber || '');
             setLastUpdate(new Date(data.lastUpdate).getTime());
           }
           
@@ -224,7 +231,8 @@ export const MenuProvider = ({ children }) => {
       products: newProducts,
       dailyOffer,
       pixKey,
-      pixName
+      pixName,
+      whatsappNumber
     };
     
     const success = await saveToFirebase(dataToSave);
@@ -304,6 +312,17 @@ export const MenuProvider = ({ children }) => {
     }
   };
 
+  // Função para atualizar número do WhatsApp
+  const updateWhatsapp = async (number) => {
+    try {
+      await firebaseUpdateWhatsAppNumber(number);
+      console.log('MenuContext: WhatsApp salvo no Firebase com sucesso');
+    } catch (error) {
+      console.error('MenuContext: Erro ao salvar WhatsApp:', error);
+      throw error;
+    }
+  };
+
   // Função de login
   const login = (username, password) => {
     if (username === 'admin' && password === 'hotdog123') {
@@ -333,6 +352,7 @@ export const MenuProvider = ({ children }) => {
         setDailyOffer(firebaseData.dailyOffer || null);
         setPixKey(firebaseData.pixKey || '');
         setPixName(firebaseData.pixName || '');
+        setWhatsappNumber(firebaseData.whatsappNumber || '');
         setLastUpdate(new Date(firebaseData.lastUpdate).getTime());
         console.log('MenuContext: Sincronização concluída');
       } else {
@@ -376,6 +396,7 @@ export const MenuProvider = ({ children }) => {
       isAuthenticated,
       pixKey,
       pixName,
+      whatsappNumber,
       isLoading,
       isSaving,
       lastUpdate,
@@ -384,6 +405,7 @@ export const MenuProvider = ({ children }) => {
       deleteProduct,
       setOffer,
       updatePixConfig,
+      updateWhatsapp,
       login,
       logout,
       forceRefresh,

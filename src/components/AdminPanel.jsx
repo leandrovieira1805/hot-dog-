@@ -10,6 +10,7 @@ const AdminPanel = () => {
     isAuthenticated, 
     pixKey,
     pixName,
+    whatsappNumber,
     lastUpdate,
     isSaving,
     addProduct, 
@@ -17,6 +18,7 @@ const AdminPanel = () => {
     deleteProduct, 
     setOffer, 
     updatePixConfig,
+    updateWhatsapp,
     forceRefresh,
     clearData,
     restoreDefaults,
@@ -47,12 +49,17 @@ const AdminPanel = () => {
   // Estados locais para Pix (serão sincronizados com o contexto)
   const [localPixKey, setLocalPixKey] = useState(pixKey || '');
   const [localPixName, setLocalPixName] = useState(pixName || '');
+  const [localWhatsapp, setLocalWhatsapp] = useState(whatsappNumber || '');
 
   // Sincronizar com o contexto
   useEffect(() => {
     setLocalPixKey(pixKey || '');
     setLocalPixName(pixName || '');
   }, [pixKey, pixName]);
+
+  useEffect(() => {
+    setLocalWhatsapp(whatsappNumber || '');
+  }, [whatsappNumber]);
 
   // Salvar Pix no contexto ao alterar
   const handlePixChange = (key, name) => {
@@ -67,6 +74,16 @@ const AdminPanel = () => {
     window.pixTimeout = setTimeout(() => {
       updatePixConfig(key, name);
     }, 500); // 500ms de debounce
+  };
+
+  const handleWhatsappChange = (value) => {
+    setLocalWhatsapp(value);
+    if (window.whatsTimeout) {
+      clearTimeout(window.whatsTimeout);
+    }
+    window.whatsTimeout = setTimeout(() => {
+      updateWhatsapp(value);
+    }, 500);
   };
 
   useEffect(() => {
@@ -197,6 +214,10 @@ const AdminPanel = () => {
           <label style={{color:'#fff'}}>Nome do Recebedor:</label>
           <input type="text" value={localPixName} onChange={e => handlePixChange(localPixKey, e.target.value)} style={{width:'100%'}} />
         </div>
+        <div className="form-group">
+          <label style={{color:'#fff'}}>WhatsApp (apenas números, com DDI):</label>
+          <input type="text" value={localWhatsapp} placeholder="5587999999999" onChange={e => handleWhatsappChange(e.target.value)} style={{width:'100%'}} />
+        </div>
       </div>
 
       <div className="admin-tabs">
@@ -312,13 +333,28 @@ const AdminPanel = () => {
                         onChange={(e) => setProductForm({...productForm, category: e.target.value})}
                         required
                       >
-                        <option value="Lanches">Lanches</option>
-                        <option value="Cuscuz">Cuscuz</option>
+                        <option value="Hambúrgueres">Hambúrgueres</option>
+                        <option value="Petiscos">Petiscos</option>
                         <option value="Bebidas">Bebidas</option>
-                        <option value="Combo de Salgados">Combo de Salgados</option>
-                        <option value="Doces">Doces</option>
+                        <option value="Hot Dog">Hot Dog</option>
+                        <option value="Bolos">Bolos</option>
+                        <option value="Batata">Batata</option>
+                        <option value="Cuscuz">Cuscuz</option>
                       </select>
                     </div>
+                    {productForm.category === 'Hambúrgueres' && (
+                      <div className="form-group">
+                        <label>Subcategoria:</label>
+                        <select
+                          value={productForm.subcategory || 'Tradicional'}
+                          onChange={(e) => setProductForm({...productForm, subcategory: e.target.value})}
+                          required
+                        >
+                          <option value="Tradicional">Tradicional</option>
+                          <option value="Artesanal">Artesanal</option>
+                        </select>
+                      </div>
+                    )}
 
                     <div className="form-group">
                       <label>Status:</label>
