@@ -29,14 +29,17 @@ const CustomerView = () => {
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    
     // Compatibilidade com dados antigos: normaliza categoria
     const productCategory = (product.category || '').toLowerCase();
     const selected = selectedCategory.toLowerCase();
     let matchesCategory = selectedCategory === 'Todos';
+    
     if (!matchesCategory) {
       if (selected === 'hambúrgueres' || selected === 'hamburgueres') {
         // Considera "hambúrgueres" como guarda-chuva
         matchesCategory = ['hambúrgueres','hamburgueres','hamburguer','hamburgers','burger'].some(c => productCategory === c);
+        
         // Se subcategoria foi escolhida, filtra também
         if (matchesCategory && selectedSubcategory !== 'Todos') {
           const sub = (product.subcategory || '').toLowerCase();
@@ -47,6 +50,7 @@ const CustomerView = () => {
         matchesCategory = productCategory === selected;
       }
     }
+    
     const isAvailable = product.available !== false;
     return matchesSearch && matchesCategory && isAvailable;
   });

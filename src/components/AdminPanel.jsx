@@ -37,7 +37,7 @@ const AdminPanel = () => {
     name: '',
     price: '',
     image: '',
-    category: 'Lanches',
+    category: 'Hambúrgueres',
     subcategory: 'Tradicional',
     available: true
   });
@@ -136,12 +136,18 @@ const AdminPanel = () => {
   const handleProductSubmit = (e) => {
     e.preventDefault();
     
+    // Validação: hambúrgueres devem ter subcategoria
+    if (productForm.category === 'Hambúrgueres' && !productForm.subcategory) {
+      alert('Por favor, selecione uma subcategoria para o hambúrguer (Tradicional ou Artesanal)');
+      return;
+    }
+    
     const productData = {
       name: productForm.name,
       price: parseFloat(productForm.price),
       image: productForm.image,
       category: productForm.category,
-      ...(productForm.category === 'Hambúrgueres' ? { subcategory: productForm.subcategory || 'Tradicional' } : {}),
+      ...(productForm.category === 'Hambúrgueres' ? { subcategory: productForm.subcategory } : {}),
       available: productForm.available
     };
 
@@ -152,7 +158,7 @@ const AdminPanel = () => {
       addProduct(productData);
     }
 
-    setProductForm({ name: '', price: '', image: '', category: 'Lanches', subcategory: 'Tradicional', available: true });
+    setProductForm({ name: '', price: '', image: '', category: 'Hambúrgueres', subcategory: 'Tradicional', available: true });
     setShowProductForm(false);
   };
 
@@ -313,7 +319,7 @@ const AdminPanel = () => {
                 className="add-btn"
                 onClick={() => {
                   setEditingProduct(null);
-                  setProductForm({ name: '', price: '', image: '', category: 'Lanches', subcategory: 'Tradicional', available: true });
+                  setProductForm({ name: '', price: '', image: '', category: 'Hambúrgueres', subcategory: 'Tradicional', available: true });
                   setShowProductForm(true);
                 }}
               >
@@ -399,7 +405,15 @@ const AdminPanel = () => {
                       <label>Categoria:</label>
                       <select
                         value={productForm.category}
-                        onChange={(e) => setProductForm({...productForm, category: e.target.value})}
+                        onChange={(e) => {
+                          const newCategory = e.target.value;
+                          setProductForm({
+                            ...productForm, 
+                            category: newCategory,
+                            // Reset subcategory when changing category
+                            subcategory: newCategory === 'Hambúrgueres' ? 'Tradicional' : undefined
+                          });
+                        }}
                         required
                       >
                         <option value="Hambúrgueres">Hambúrgueres</option>
@@ -413,12 +427,13 @@ const AdminPanel = () => {
                     </div>
                     {productForm.category === 'Hambúrgueres' && (
                       <div className="form-group">
-                        <label>Subcategoria:</label>
+                        <label>Subcategoria (obrigatório para hambúrgueres):</label>
                         <select
                           value={productForm.subcategory || 'Tradicional'}
                           onChange={(e) => setProductForm({...productForm, subcategory: e.target.value})}
                           required
                         >
+                          <option value="">Selecione uma subcategoria</option>
                           <option value="Tradicional">Tradicional</option>
                           <option value="Artesanal">Artesanal</option>
                         </select>
