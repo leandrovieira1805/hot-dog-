@@ -301,9 +301,11 @@ export const updateWhatsAppNumber = async (whatsappNumber) => {
 };
 
 // Atualizar taxas de entrega (nova estrutura)
+// Aceita array [{ name, fee }] ou objeto { chave: valor }
 export const updateDeliveryFees = async (fees) => {
   try {
     const configRef = doc(db, 'menu', MENU_CONFIG_DOC_ID);
+    // salvar diretamente o que vier; front já normaliza para array
     await updateDoc(configRef, {
       deliveryFees: fees,
       lastUpdate: new Date().toISOString()

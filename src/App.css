@@ -196,7 +196,8 @@ input::placeholder, textarea::placeholder {
 
 .search-input:focus {
   border-color: #ff6b6b;
-  background: white;
+  background: #232323;
+  color: #fff;
   box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
 }
 
@@ -830,7 +831,8 @@ input::placeholder, textarea::placeholder {
 .form-group textarea:focus {
   outline: none;
   border-color: #ff6b6b;
-  background: white;
+  background: #232323;
+  color: #fff;
   box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
 }
 

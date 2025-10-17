@@ -11,6 +11,7 @@ const AdminPanel = () => {
     pixKey,
     pixName,
     whatsappNumber,
+    deliveryFees,
     lastUpdate,
     isSaving,
     addProduct, 
@@ -52,6 +53,7 @@ const AdminPanel = () => {
   const [localPixKey, setLocalPixKey] = useState(pixKey || '');
   const [localPixName, setLocalPixName] = useState(pixName || '');
   const [localWhatsapp, setLocalWhatsapp] = useState(whatsappNumber || '');
+  const [localFees, setLocalFees] = useState(deliveryFees || []);
 
   // Sincronizar com o contexto
   useEffect(() => {
@@ -62,6 +64,10 @@ const AdminPanel = () => {
   useEffect(() => {
     setLocalWhatsapp(whatsappNumber || '');
   }, [whatsappNumber]);
+
+  useEffect(() => {
+    setLocalFees(deliveryFees || []);
+  }, [deliveryFees]);
 
   // Salvar Pix no contexto ao alterar
   const handlePixChange = (key, name) => {
@@ -86,6 +92,34 @@ const AdminPanel = () => {
     window.whatsTimeout = setTimeout(() => {
       updateWhatsapp(value);
     }, 500);
+  };
+
+  const saveFeesDebounced = (feesArray) => {
+    if (window.feesTimeout) clearTimeout(window.feesTimeout);
+    window.feesTimeout = setTimeout(() => {
+      // Salvar como array no backend
+      updateFees(feesArray);
+    }, 400);
+  };
+
+  const handleAddLocation = () => {
+    const newFees = [...(localFees || []), { name: '', fee: 0 }];
+    setLocalFees(newFees);
+    saveFeesDebounced(newFees);
+  };
+
+  const handleChangeLocation = (index, field, value) => {
+    const newFees = (localFees || []).map((item, i) =>
+      i === index ? { ...item, [field]: field === 'fee' ? Number(value || 0) : value } : item
+    );
+    setLocalFees(newFees);
+    saveFeesDebounced(newFees);
+  };
+
+  const handleRemoveLocation = (index) => {
+    const newFees = (localFees || []).filter((_, i) => i !== index);
+    setLocalFees(newFees);
+    saveFeesDebounced(newFees);
   };
 
   useEffect(() => {
@@ -222,13 +256,36 @@ const AdminPanel = () => {
           <label style={{color:'#fff'}}>WhatsApp (apenas números, com DDI):</label>
           <input type="text" value={localWhatsapp} placeholder="5587999999999" onChange={e => handleWhatsappChange(e.target.value)} style={{width:'100%'}} />
         </div>
-        <div className="form-group">
-          <label style={{color:'#fff'}}>Taxa de Entrega - Lagoa Grande (R$):</label>
-          <input type="number" step="0.01" defaultValue={4} onChange={e => updateFees({ lagoaGrande: Number(e.target.value || 0), izacolandia: undefined })} style={{width:'100%'}} />
-        </div>
-        <div className="form-group">
-          <label style={{color:'#fff'}}>Taxa de Entrega - Izacolândia (R$):</label>
-          <input type="number" step="0.01" defaultValue={5} onChange={e => updateFees({ lagoaGrande: undefined, izacolandia: Number(e.target.value || 0) })} style={{width:'100%'}} />
+        <div className="form-group" style={{marginTop:'1rem'}}>
+          <label style={{color:'#fff', display:'block', marginBottom:'0.5rem'}}>Localidades e Taxas de Entrega</label>
+          {(localFees || []).map((loc, idx) => (
+            <div key={idx} style={{display:'flex', gap:'8px', alignItems:'center', marginBottom:'8px'}}>
+              <input 
+                type="text" 
+                placeholder="Localidade"
+                value={loc.name}
+                onChange={e => handleChangeLocation(idx, 'name', e.target.value)}
+                style={{flex:2}}
+              />
+              <input 
+                type="number" step="0.01"
+                placeholder="Taxa (R$)"
+                value={loc.fee}
+                onChange={e => handleChangeLocation(idx, 'fee', e.target.value)}
+                style={{flex:1}}
+              />
+              <button 
+                type="button"
+                onClick={() => handleRemoveLocation(idx)}
+                style={{background:'#dc2626', color:'#fff', border:'none', padding:'0.6rem 0.8rem', borderRadius:'8px', cursor:'pointer'}}
+              >Remover</button>
+            </div>
+          ))}
+          <button 
+            type="button"
+            onClick={handleAddLocation}
+            style={{marginTop:'6px', background:'#10b981', color:'#fff', border:'none', padding:'0.6rem 0.8rem', borderRadius:'8px', cursor:'pointer'}}
+          >Adicionar Localidade</button>
         </div>
       </div>
 

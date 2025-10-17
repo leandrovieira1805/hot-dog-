@@ -22,6 +22,7 @@ const Cart = () => {
   const [addressNumber, setAddressNumber] = useState('');
   const [addressReference, setAddressReference] = useState('');
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [deliveryLocation, setDeliveryLocation] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('pix');
   const [changeValue, setChangeValue] = useState('');
 
@@ -50,6 +51,7 @@ const Cart = () => {
       if (addressReference.trim()) {
         msg += `Referência: ${addressReference}\n`;
       }
+      msg += `Localidade: ${deliveryLocation}\n`;
       msg += `Taxa de entrega: R$ ${deliveryFee}\n`;
     }
     msg += `\n*Itens:*\n`;
@@ -171,11 +173,22 @@ const Cart = () => {
                             <input type="text" value={addressReference} onChange={e => setAddressReference(e.target.value)} />
                           </div>
                           <div className="form-group">
-                            <label>Taxa de Entrega:</label>
-                            <select value={deliveryFee} onChange={e => setDeliveryFee(e.target.value)}>
-                              <option value={0}>Selecione</option>
-                              <option value={deliveryFees?.lagoaGrande || 0}>Lagoa Grande - R$ {(deliveryFees?.lagoaGrande || 0).toFixed(2)}</option>
-                              <option value={deliveryFees?.izacolandia || 0}>Izacolândia - R$ {(deliveryFees?.izacolandia || 0).toFixed(2)}</option>
+                            <label>Localidade:</label>
+                            <select 
+                              value={deliveryLocation}
+                              onChange={e => {
+                                const name = e.target.value;
+                                setDeliveryLocation(name);
+                                const found = (deliveryFees || []).find(f => f.name === name);
+                                setDeliveryFee(found ? Number(found.fee) : 0);
+                              }}
+                            >
+                              <option value="">Selecione</option>
+                              {(deliveryFees || []).map((f) => (
+                                <option key={f.name} value={f.name}>
+                                  {f.name} - R$ {Number(f.fee || 0).toFixed(2)}
+                                </option>
+                              ))}
                             </select>
                           </div>
                         </>
