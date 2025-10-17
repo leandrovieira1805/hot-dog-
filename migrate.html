@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migração para Firebase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .success {
+            background: rgba(46, 204, 113, 0.2);
+            border-left: 4px solid #2ecc71;
+        }
+        .error {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid #e74c3c;
+        }
+        .info {
+            background: rgba(52, 152, 219, 0.2);
+            border-left: 4px solid #3498db;
+        }
+        .products-list {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .product-item:last-child {
+            border-bottom: none;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Migração para Firebase</h1>
+        
+        <div class="status info">
+            <strong>📋 Instruções:</strong><br>
+            1. Clique em "Ver Dados Atuais" para ver os produtos cadastrados<br>
+            2. Clique em "Migrar para Firebase" para enviar os dados<br>
+            3. Os produtos aparecerão instantaneamente no site
+        </div>
+        
+        <div style="text-align: center;">
+            <button class="btn" onclick="showCurrentData()">
+                📋 Ver Dados Atuais
+            </button>
+            <button class="btn" onclick="migrateToFirebase()" id="migrateBtn">
+                🔄 Migrar para Firebase
+            </button>
+        </div>
+        
+        <div id="status"></div>
+        <div id="productsList"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, doc, setDoc, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAuZ1SJWxlwWtgVhV3qnBafoytho59WE4I",
+            authDomain: "device-streaming-77144326.firebaseapp.com",
+            databaseURL: "https://device-streaming-77144326-default-rtdb.firebaseio.com",
+            projectId: "device-streaming-77144326",
+            storageBucket: "device-streaming-77144326.firebasestorage.app",
+            messagingSenderId: "375948005973",
+            appId: "1:375948005973:web:99b7ff4736d6c17f927adc"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Função para mostrar dados atuais
+        window.showCurrentData = function() {
+            const statusDiv = document.getElementById('status');
+            const productsListDiv = document.getElementById('productsList');
+            
+            statusDiv.innerHTML = '<div class="status info">🔍 Verificando dados no localStorage...</div>';
+            
+            const menuData = localStorage.getItem('menuData');
+            const pixConfig = localStorage.getItem('pixConfig');
+            const dailyOffer = localStorage.getItem('dailyOffer');
+            
+            if (!menuData) {
+                statusDiv.innerHTML = '<div class="status error">❌ Nenhum produto encontrado no localStorage</div>';
+                productsListDiv.innerHTML = '';
+                return;
+            }
+            
+            const products = JSON.parse(menuData);
+            const pix = pixConfig ? JSON.parse(pixConfig) : null;
+            const offer = dailyOffer ? JSON.parse(dailyOffer) : null;
+            
+            let statusHtml = '<div class="status success">';
+            statusHtml += `<strong>✅ Dados encontrados:</strong><br>`;
+            statusHtml += `🍔 Produtos: ${products.length}<br>`;
+            statusHtml += `💳 PIX: ${pix ? 'Configurado' : 'Não configurado'}<br>`;
+            statusHtml += `🎯 Oferta: ${offer ? 'Configurada' : 'Não configurada'}`;
+            statusHtml += '</div>';
+            
+            statusDiv.innerHTML = statusHtml;
+            
+            // Mostrar lista de produtos
+            let productsHtml = '<div class="products-list">';
+            productsHtml += '<h3>🍔 Produtos Cadastrados:</h3>';
+            products.forEach((product, index) => {
+                productsHtml += `
+                    <div class="product-item">
+                        <span>${index + 1}. ${product.name}</span>
+                        <span>R$ ${product.price}</span>
+                    </div>
+                `;
+            });
+            productsHtml += '</div>';
+            
+            productsListDiv.innerHTML = productsHtml;
+        };
+
+        // Função para migrar dados
+        window.migrateToFirebase = async function() {
+            const statusDiv = document.getElementById('status');
+            const migrateBtn = document.getElementById('migrateBtn');
+            
+            migrateBtn.disabled = true;
+            migrateBtn.innerHTML = '<span class="loading"></span> Migrando...';
+            
+            try {
+                statusDiv.innerHTML = '<div class="status info">🔄 Iniciando migração para Firebase...</div>';
+                
+                const menuData = localStorage.getItem('menuData');
+                const pixConfig = localStorage.getItem('pixConfig');
+                const dailyOffer = localStorage.getItem('dailyOffer');
+                
+                if (!menuData) {
+                    statusDiv.innerHTML = '<div class="status error">❌ Nenhum dado encontrado no localStorage</div>';
+                    return;
+                }
+                
+                const products = JSON.parse(menuData);
+                const pix = pixConfig ? JSON.parse(pixConfig) : null;
+                const offer = dailyOffer ? JSON.parse(dailyOffer) : null;
+                
+                statusDiv.innerHTML = '<div class="status info">💾 Salvando no Firebase...</div>';
+                
+                // Preparar dados para Firebase
+                const firebaseData = {
+                    products: products,
+                    pixConfig: pix || {
+                        pixKey: "",
+                        pixKeyType: "email",
+                        recipientName: ""
+                    },
+                    dailyOffer: offer || {
+                        title: "",
+                        description: "",
+                        discount: 0,
+                        active: false
+                    },
+                    lastUpdated: new Date().toISOString()
+                };
+                
+                // Salvar no Firebase
+                await setDoc(doc(db, 'menu', 'menu_data'), firebaseData);
+                
+                statusDiv.innerHTML = '<div class="status success">✅ Migração concluída com sucesso!</div>';
+                
+                // Verificar se foi salvo
+                const docSnap = await getDocs(collection(db, 'menu'));
+                
+                if (docSnap.size > 0) {
+                    statusDiv.innerHTML += '<div class="status success">✅ Dados confirmados no Firebase!</div>';
+                    statusDiv.innerHTML += '<div class="status info">🌐 Acesse: <a href="https://console.firebase.google.com/project/device-streaming-77144326/firestore" target="_blank" style="color: #fff;">Firebase Console</a></div>';
+                }
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ Erro na migração: ${error.message}</div>`;
+            } finally {
+                migrateBtn.disabled = false;
+                migrateBtn.innerHTML = '🔄 Migrar para Firebase';
+            }
+        };
+    </script>
+</body>
+</html> 
