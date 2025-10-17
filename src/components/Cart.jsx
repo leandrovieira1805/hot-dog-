@@ -53,7 +53,7 @@ const Cart = () => {
     if (paymentMethod === 'pix') {
       msg += `Chave Pix: ${pixKey}\nRecebedor: ${pixName}\n`;
     }
-    const url = `https://wa.me/55999211477?text=${encodeURIComponent(msg)}`;
+    const url = `https://wa.me/5587996175314?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
     clearCart();
     setIsCartOpen(false);
