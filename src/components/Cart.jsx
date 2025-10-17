@@ -12,13 +12,15 @@ const Cart = () => {
     getTotalPrice,
     clearCart 
   } = useCart();
-  const { pixKey: contextPixKey, pixName: contextPixName, whatsappNumber } = useMenu();
+  const { pixKey: contextPixKey, pixName: contextPixName, whatsappNumber, deliveryFees } = useMenu();
 
   // Estados para o fluxo de finalização
   const [showCheckout, setShowCheckout] = useState(false);
   const [clientName, setClientName] = useState('');
   const [deliveryType, setDeliveryType] = useState('retirada');
   const [address, setAddress] = useState('');
+  const [addressNumber, setAddressNumber] = useState('');
+  const [addressReference, setAddressReference] = useState('');
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState('pix');
   const [changeValue, setChangeValue] = useState('');
@@ -34,11 +36,20 @@ const Cart = () => {
   };
 
   const handleSendWhatsApp = () => {
+    if (!clientName.trim()) return alert('Informe o nome do cliente.');
+    if (deliveryType === 'entrega') {
+      if (!address.trim()) return alert('Informe o endereço.');
+      if (!addressNumber.trim()) return alert('Informe o número da casa.');
+      if (!deliveryFee || Number(deliveryFee) <= 0) return alert('Selecione a taxa de entrega.');
+    }
     let msg = `*Novo Pedido*\n`;
     msg += `Nome: ${clientName}\n`;
     msg += `Tipo: ${deliveryType === 'entrega' ? 'Entrega' : 'Retirada'}\n`;
     if (deliveryType === 'entrega') {
-      msg += `Endereço: ${address}\n`;
+      msg += `Endereço: ${address}, Nº ${addressNumber}\n`;
+      if (addressReference.trim()) {
+        msg += `Referência: ${addressReference}\n`;
+      }
       msg += `Taxa de entrega: R$ ${deliveryFee}\n`;
     }
     msg += `\n*Itens:*\n`;
@@ -152,11 +163,19 @@ const Cart = () => {
                             <input type="text" value={address} onChange={e => setAddress(e.target.value)} required />
                           </div>
                           <div className="form-group">
+                            <label>Número:</label>
+                            <input type="text" value={addressNumber} onChange={e => setAddressNumber(e.target.value)} required />
+                          </div>
+                          <div className="form-group">
+                            <label>Referência:</label>
+                            <input type="text" value={addressReference} onChange={e => setAddressReference(e.target.value)} />
+                          </div>
+                          <div className="form-group">
                             <label>Taxa de Entrega:</label>
                             <select value={deliveryFee} onChange={e => setDeliveryFee(e.target.value)}>
                               <option value={0}>Selecione</option>
-                              <option value={4}>Lagoa Grande - R$ 4,00</option>
-                              <option value={5}>Izacolândia - R$ 5,00</option>
+                              <option value={deliveryFees?.lagoaGrande || 0}>Lagoa Grande - R$ {(deliveryFees?.lagoaGrande || 0).toFixed(2)}</option>
+                              <option value={deliveryFees?.izacolandia || 0}>Izacolândia - R$ {(deliveryFees?.izacolandia || 0).toFixed(2)}</option>
                             </select>
                           </div>
                         </>

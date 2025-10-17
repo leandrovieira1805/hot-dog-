@@ -19,6 +19,7 @@ const AdminPanel = () => {
     setOffer, 
     updatePixConfig,
     updateWhatsapp,
+    updateFees,
     forceRefresh,
     clearData,
     restoreDefaults,
@@ -220,6 +221,14 @@ const AdminPanel = () => {
         <div className="form-group">
           <label style={{color:'#fff'}}>WhatsApp (apenas números, com DDI):</label>
           <input type="text" value={localWhatsapp} placeholder="5587999999999" onChange={e => handleWhatsappChange(e.target.value)} style={{width:'100%'}} />
+        </div>
+        <div className="form-group">
+          <label style={{color:'#fff'}}>Taxa de Entrega - Lagoa Grande (R$):</label>
+          <input type="number" step="0.01" defaultValue={4} onChange={e => updateFees({ lagoaGrande: Number(e.target.value || 0), izacolandia: undefined })} style={{width:'100%'}} />
+        </div>
+        <div className="form-group">
+          <label style={{color:'#fff'}}>Taxa de Entrega - Izacolândia (R$):</label>
+          <input type="number" step="0.01" defaultValue={5} onChange={e => updateFees({ lagoaGrande: undefined, izacolandia: Number(e.target.value || 0) })} style={{width:'100%'}} />
         </div>
       </div>
 

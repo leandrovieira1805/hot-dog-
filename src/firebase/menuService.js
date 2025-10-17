@@ -69,6 +69,8 @@ export const getMenuData = async () => {
       dailyOffer: null,
       pixKey: '',
       pixName: '',
+      whatsappNumber: '',
+      deliveryFees: { lagoaGrande: 4, izacolandia: 5 },
       lastUpdate: new Date().toISOString()
     };
     
@@ -294,6 +296,22 @@ export const updateWhatsAppNumber = async (whatsappNumber) => {
     return true;
   } catch (error) {
     console.error('Firebase: Erro ao atualizar WhatsApp:', error);
+    throw error;
+  }
+};
+
+// Atualizar taxas de entrega (nova estrutura)
+export const updateDeliveryFees = async (fees) => {
+  try {
+    const configRef = doc(db, 'menu', MENU_CONFIG_DOC_ID);
+    await updateDoc(configRef, {
+      deliveryFees: fees,
+      lastUpdate: new Date().toISOString()
+    });
+    console.log('Firebase: Taxas de entrega atualizadas');
+    return true;
+  } catch (error) {
+    console.error('Firebase: Erro ao atualizar taxas:', error);
     throw error;
   }
 };
