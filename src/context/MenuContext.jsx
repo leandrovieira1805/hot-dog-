@@ -10,6 +10,7 @@ import {
   updateWhatsAppNumber as firebaseUpdateWhatsAppNumber,
   updateDeliveryFees as firebaseUpdateDeliveryFees,
   updateAddOns as firebaseUpdateAddOns,
+  updateCategories as firebaseUpdateCategories,
   clearAllData as firebaseClearAllData,
   restoreDefaultData as firebaseRestoreDefaultData,
   subscribeToMenuChanges
@@ -290,15 +291,7 @@ export const MenuProvider = ({ children }) => {
           setDeliveryFees(normalizeDeliveryFees(data.deliveryFees));
           setAddOns(data.addOns || []);
           setEspetinhoCombos(data.espetinhoCombos || []);
-          setCategories(data.categories || [
-            { name: 'Hambúrgueres', icon: '🍔', enabled: true },
-            { name: 'Petiscos', icon: '🍟', enabled: true },
-            { name: 'Bebidas', icon: '🥤', enabled: true },
-            { name: 'Hot Dog', icon: '🌭', enabled: true },
-            { name: 'Bolos', icon: '🍰', enabled: true },
-            { name: 'Batata', icon: '🥔', enabled: true },
-            { name: 'Cuscuz', icon: '🌽', enabled: true }
-          ]);
+          setCategories(data.categories || []);
           setLastUpdate(new Date(data.lastUpdate).getTime());
           
           console.log('✅ Dados atualizados com sucesso');
@@ -449,18 +442,7 @@ export const MenuProvider = ({ children }) => {
   // Função para atualizar categorias
   const updateCategories = async (newCategories) => {
     try {
-      const dataToSave = {
-        products,
-        dailyOffer,
-        pixKey,
-        pixName,
-        whatsappNumber,
-        deliveryFees,
-        addOns,
-        espetinhoCombos,
-        categories: newCategories
-      };
-      await saveToFirebase(dataToSave);
+      await firebaseUpdateCategories(newCategories);
       console.log('MenuContext: Categorias salvas no Firebase com sucesso');
     } catch (error) {
       console.error('MenuContext: Erro ao salvar categorias:', error);
@@ -523,7 +505,15 @@ export const MenuProvider = ({ children }) => {
         setDeliveryFees(normalizeDeliveryFees(firebaseData.deliveryFees));
         setAddOns(firebaseData.addOns || []);
         setEspetinhoCombos(firebaseData.espetinhoCombos || []);
-        setCategories(firebaseData.categories || []);
+        setCategories(firebaseData.categories || [
+          { name: 'Hambúrgueres', icon: '🍔', enabled: true },
+          { name: 'Petiscos', icon: '🍟', enabled: true },
+          { name: 'Bebidas', icon: '🥤', enabled: true },
+          { name: 'Hot Dog', icon: '🌭', enabled: true },
+          { name: 'Bolos', icon: '🍰', enabled: true },
+          { name: 'Batata', icon: '🥔', enabled: true },
+          { name: 'Cuscuz', icon: '🌽', enabled: true }
+        ]);
         setLastUpdate(new Date(firebaseData.lastUpdate).getTime());
         console.log('MenuContext: Sincronização concluída');
       } else {

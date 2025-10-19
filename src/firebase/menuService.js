@@ -334,6 +334,22 @@ export const updateAddOns = async (addOns) => {
   }
 };
 
+// Atualizar categorias (nova estrutura)
+export const updateCategories = async (categories) => {
+  try {
+    const configRef = doc(db, 'menu', MENU_CONFIG_DOC_ID);
+    await updateDoc(configRef, {
+      categories: categories,
+      lastUpdate: new Date().toISOString()
+    });
+    console.log('Firebase: Categorias atualizadas');
+    return true;
+  } catch (error) {
+    console.error('Firebase: Erro ao atualizar categorias:', error);
+    throw error;
+  }
+};
+
 // Função para limpar todos os dados (nova estrutura)
 export const clearAllData = async () => {
   try {
