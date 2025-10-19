@@ -4,11 +4,11 @@ import { useCart } from '../context/CartContext';
 import ProductCard from './ProductCard';
 import Cart from './Cart';
 import DailyOfferModal from './DailyOfferModal';
-import { ShoppingCart, Search, MapPin, Clock, Star } from 'lucide-react';
+import { ShoppingCart, Search, MapPin, Clock, Star, Plus } from 'lucide-react';
 
 const CustomerView = () => {
-  const { products, dailyOffer } = useMenu();
-  const { isCartOpen, setIsCartOpen, getTotalItems } = useCart();
+  const { products, dailyOffer, categories, espetinhoCombos } = useMenu();
+  const { isCartOpen, setIsCartOpen, getTotalItems, addToCart } = useCart();
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
@@ -24,7 +24,8 @@ const CustomerView = () => {
     }
   }, [dailyOffer]);
 
-  const categories = ['Todos', 'Hambúrgueres', 'Petiscos', 'Bebidas', 'Hot Dog', 'Bolos', 'Batata', 'Cuscuz'];
+  const enabledCategories = categories.filter(cat => cat.enabled);
+  const categoryNames = ['Todos', ...enabledCategories.map(cat => cat.name)];
   const burgerSubcategories = ['Todos', 'Tradicional', 'Artesanal'];
 
   const filteredProducts = products.filter(product => {
@@ -101,13 +102,13 @@ const CustomerView = () => {
           </div>
 
           <div className="categories-tabs">
-            {categories.map(category => (
+            {categoryNames.map(category => (
               <button
                 key={category}
                 className={`category-tab ${selectedCategory === category ? 'active' : ''}`}
                 onClick={() => { setSelectedCategory(category); setSelectedSubcategory('Todos'); }}
               >
-                {category}
+                {category === 'Todos' ? category : enabledCategories.find(cat => cat.name === category)?.icon} {category}
               </button>
             ))}
           </div>
@@ -161,6 +162,48 @@ const CustomerView = () => {
             <h2>Nosso Cardápio</h2>
             <p>Escolha seus favoritos e monte seu pedido</p>
           </div>
+
+          {/* Seção de Combos Espetinho */}
+          {selectedCategory === 'Todos' && espetinhoCombos && espetinhoCombos.length > 0 && (
+            <div className="combos-section" style={{ marginBottom: '2rem' }}>
+              <h3 style={{ textAlign: 'center', marginBottom: '1.5rem', color: '#333' }}>
+                🍢 Combos Espetinho
+              </h3>
+              <div className="products-grid">
+                {espetinhoCombos.filter(combo => combo.available).map(combo => (
+                  <div key={combo.id} className="product-card-modern combo-card">
+                    <img src={combo.image} alt={combo.name} className="product-image" />
+                    <div className="product-info">
+                      <h3 className="product-name">{combo.name}</h3>
+                      <p className="product-description">{combo.description}</p>
+                      <div className="combo-items">
+                        <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', color: '#666' }}>
+                          Inclui:
+                        </h4>
+                        <ul style={{ fontSize: '0.8rem', color: '#777', paddingLeft: '1rem' }}>
+                          {combo.items.map((item, index) => (
+                            <li key={index}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="product-footer">
+                        <span className="product-price">R$ {combo.price.toFixed(2)}</span>
+                        <button 
+                          className="add-to-cart-btn"
+                          onClick={() => {
+                            addToCart(combo);
+                          }}
+                        >
+                          <Plus size={20} />
+                          Adicionar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="products-grid">
             {filteredProducts.map(product => (

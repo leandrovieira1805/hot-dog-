@@ -13,6 +13,8 @@ const AdminPanel = () => {
     whatsappNumber,
     deliveryFees,
     addOns,
+    espetinhoCombos,
+    categories,
     lastUpdate,
     isSaving,
     addProduct, 
@@ -23,6 +25,8 @@ const AdminPanel = () => {
     updateWhatsapp,
     updateFees,
     updateAddOns,
+    updateEspetinhoCombos,
+    updateCategories,
     forceRefresh,
     clearData,
     restoreDefaults,
@@ -57,6 +61,8 @@ const AdminPanel = () => {
   const [localWhatsapp, setLocalWhatsapp] = useState(whatsappNumber || '');
   const [localFees, setLocalFees] = useState(deliveryFees || []);
   const [localAddOns, setLocalAddOns] = useState(addOns || []);
+  const [localCategories, setLocalCategories] = useState(categories || []);
+  const [localEspetinhoCombos, setLocalEspetinhoCombos] = useState(espetinhoCombos || []);
 
   // Sincronizar com o contexto
   useEffect(() => {
@@ -75,6 +81,14 @@ const AdminPanel = () => {
   useEffect(() => {
     setLocalAddOns(addOns || []);
   }, [addOns]);
+
+  useEffect(() => {
+    setLocalCategories(categories || []);
+  }, [categories]);
+
+  useEffect(() => {
+    setLocalEspetinhoCombos(espetinhoCombos || []);
+  }, [espetinhoCombos]);
 
   // Salvar Pix no contexto ao alterar
   const handlePixChange = (key, name) => {
@@ -154,6 +168,108 @@ const AdminPanel = () => {
     const newAddOns = (localAddOns || []).filter((_, i) => i !== index);
     setLocalAddOns(newAddOns);
     saveAddOnsDebounced(newAddOns);
+  };
+
+  // Funções para gerenciar categorias
+  const saveCategoriesDebounced = (categoriesArray) => {
+    if (window.categoriesTimeout) clearTimeout(window.categoriesTimeout);
+    window.categoriesTimeout = setTimeout(() => {
+      updateCategories(categoriesArray);
+    }, 400);
+  };
+
+  const handleToggleCategory = (index) => {
+    const newCategories = (localCategories || []).map((cat, i) =>
+      i === index ? { ...cat, enabled: !cat.enabled } : cat
+    );
+    setLocalCategories(newCategories);
+    saveCategoriesDebounced(newCategories);
+  };
+
+  const handleAddCategory = () => {
+    const newCategories = [...(localCategories || []), { name: '', icon: '🍽️', enabled: true }];
+    setLocalCategories(newCategories);
+    saveCategoriesDebounced(newCategories);
+  };
+
+  const handleChangeCategory = (index, field, value) => {
+    const newCategories = (localCategories || []).map((cat, i) =>
+      i === index ? { ...cat, [field]: value } : cat
+    );
+    setLocalCategories(newCategories);
+    saveCategoriesDebounced(newCategories);
+  };
+
+  const handleRemoveCategory = (index) => {
+    const newCategories = (localCategories || []).filter((_, i) => i !== index);
+    setLocalCategories(newCategories);
+    saveCategoriesDebounced(newCategories);
+  };
+
+  // Funções para gerenciar combos espetinho
+  const saveEspetinhoCombosDebounced = (combosArray) => {
+    if (window.espetinhoCombosTimeout) clearTimeout(window.espetinhoCombosTimeout);
+    window.espetinhoCombosTimeout = setTimeout(() => {
+      updateEspetinhoCombos(combosArray);
+    }, 400);
+  };
+
+  const handleAddEspetinhoCombo = () => {
+    const newCombos = [...(localEspetinhoCombos || []), {
+      id: Date.now(),
+      name: '',
+      price: 0,
+      image: '',
+      description: '',
+      items: [],
+      available: true
+    }];
+    setLocalEspetinhoCombos(newCombos);
+    saveEspetinhoCombosDebounced(newCombos);
+  };
+
+  const handleChangeEspetinhoCombo = (index, field, value) => {
+    const newCombos = (localEspetinhoCombos || []).map((combo, i) =>
+      i === index ? { ...combo, [field]: field === 'price' ? Number(value || 0) : value } : combo
+    );
+    setLocalEspetinhoCombos(newCombos);
+    saveEspetinhoCombosDebounced(newCombos);
+  };
+
+  const handleChangeEspetinhoComboItem = (comboIndex, itemIndex, value) => {
+    const newCombos = (localEspetinhoCombos || []).map((combo, i) =>
+      i === comboIndex ? {
+        ...combo,
+        items: combo.items.map((item, j) => j === itemIndex ? value : item)
+      } : combo
+    );
+    setLocalEspetinhoCombos(newCombos);
+    saveEspetinhoCombosDebounced(newCombos);
+  };
+
+  const handleAddEspetinhoComboItem = (comboIndex) => {
+    const newCombos = (localEspetinhoCombos || []).map((combo, i) =>
+      i === comboIndex ? { ...combo, items: [...combo.items, ''] } : combo
+    );
+    setLocalEspetinhoCombos(newCombos);
+    saveEspetinhoCombosDebounced(newCombos);
+  };
+
+  const handleRemoveEspetinhoComboItem = (comboIndex, itemIndex) => {
+    const newCombos = (localEspetinhoCombos || []).map((combo, i) =>
+      i === comboIndex ? {
+        ...combo,
+        items: combo.items.filter((_, j) => j !== itemIndex)
+      } : combo
+    );
+    setLocalEspetinhoCombos(newCombos);
+    saveEspetinhoCombosDebounced(newCombos);
+  };
+
+  const handleRemoveEspetinhoCombo = (index) => {
+    const newCombos = (localEspetinhoCombos || []).filter((_, i) => i !== index);
+    setLocalEspetinhoCombos(newCombos);
+    saveEspetinhoCombosDebounced(newCombos);
   };
 
   useEffect(() => {
@@ -369,6 +485,18 @@ const AdminPanel = () => {
           Produtos
         </button>
         <button 
+          className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
+          onClick={() => setActiveTab('categories')}
+        >
+          Categorias
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'combos' ? 'active' : ''}`}
+          onClick={() => setActiveTab('combos')}
+        >
+          Combos Espetinho
+        </button>
+        <button 
           className={`tab-btn ${activeTab === 'offers' ? 'active' : ''}`}
           onClick={() => setActiveTab('offers')}
         >
@@ -482,13 +610,9 @@ const AdminPanel = () => {
                         }}
                         required
                       >
-                        <option value="Hambúrgueres">Hambúrgueres</option>
-                        <option value="Petiscos">Petiscos</option>
-                        <option value="Bebidas">Bebidas</option>
-                        <option value="Hot Dog">Hot Dog</option>
-                        <option value="Bolos">Bolos</option>
-                        <option value="Batata">Batata</option>
-                        <option value="Cuscuz">Cuscuz</option>
+                        {(localCategories || []).map((category, index) => (
+                          <option key={index} value={category.name}>{category.name}</option>
+                        ))}
                       </select>
                     </div>
                     {productForm.category === 'Hambúrgueres' && (
@@ -537,6 +661,247 @@ const AdminPanel = () => {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'categories' && (
+          <div className="categories-section">
+            <div className="section-header">
+              <h2>Gerenciar Categorias</h2>
+              <p style={{color: '#666', fontSize: '14px'}}>
+                Ative/desative categorias que aparecem na seleção principal do cardápio
+              </p>
+            </div>
+
+            <div className="categories-list">
+              {(localCategories || []).map((category, index) => (
+                <div key={index} className="category-card" style={{
+                  background: '#f8f9fa',
+                  border: '1px solid #dee2e6',
+                  borderRadius: '8px',
+                  padding: '15px',
+                  marginBottom: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '15px'
+                }}>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '10px', flex: 1}}>
+                    <input
+                      type="text"
+                      placeholder="Ícone (emoji)"
+                      value={category.icon}
+                      onChange={e => handleChangeCategory(index, 'icon', e.target.value)}
+                      style={{width: '60px', textAlign: 'center', fontSize: '16px'}}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Nome da categoria"
+                      value={category.name}
+                      onChange={e => handleChangeCategory(index, 'name', e.target.value)}
+                      style={{flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px'}}
+                    />
+                  </div>
+                  
+                  <label style={{display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer'}}>
+                    <input
+                      type="checkbox"
+                      checked={category.enabled}
+                      onChange={() => handleToggleCategory(index)}
+                    />
+                    <span style={{color: category.enabled ? '#28a745' : '#dc3545', fontWeight: 'bold'}}>
+                      {category.enabled ? 'Ativa' : 'Inativa'}
+                    </span>
+                  </label>
+                  
+                  <button
+                    onClick={() => handleRemoveCategory(index)}
+                    style={{
+                      background: '#dc3545',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 12px',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Remover
+                  </button>
+                </div>
+              ))}
+              
+              <button
+                onClick={handleAddCategory}
+                style={{
+                  background: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  marginTop: '10px'
+                }}
+              >
+                + Adicionar Categoria
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'combos' && (
+          <div className="combos-section">
+            <div className="section-header">
+              <h2>Gerenciar Combos Espetinho</h2>
+              <p style={{color: '#666', fontSize: '14px'}}>
+                Configure os combos de espetinho disponíveis no cardápio
+              </p>
+            </div>
+
+            <div className="combos-list">
+              {(localEspetinhoCombos || []).map((combo, index) => (
+                <div key={index} className="combo-card" style={{
+                  background: '#f8f9fa',
+                  border: '1px solid #dee2e6',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  marginBottom: '20px'
+                }}>
+                  <div style={{display: 'flex', gap: '15px', marginBottom: '15px'}}>
+                    <div style={{flex: 1}}>
+                      <input
+                        type="text"
+                        placeholder="Nome do combo"
+                        value={combo.name}
+                        onChange={e => handleChangeEspetinhoCombo(index, 'name', e.target.value)}
+                        style={{width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '8px'}}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Descrição"
+                        value={combo.description}
+                        onChange={e => handleChangeEspetinhoCombo(index, 'description', e.target.value)}
+                        style={{width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '8px'}}
+                      />
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="Preço (R$)"
+                        value={combo.price}
+                        onChange={e => handleChangeEspetinhoCombo(index, 'price', e.target.value)}
+                        style={{width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px'}}
+                      />
+                    </div>
+                    <div style={{width: '120px'}}>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              handleChangeEspetinhoCombo(index, 'image', reader.result);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        style={{width: '100%', marginBottom: '8px'}}
+                      />
+                      {combo.image && (
+                        <img src={combo.image} alt="Preview" style={{width: '100%', borderRadius: '4px'}} />
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 style={{marginBottom: '10px'}}>Itens do Combo:</h4>
+                    {combo.items.map((item, itemIndex) => (
+                      <div key={itemIndex} style={{display: 'flex', gap: '8px', marginBottom: '8px'}}>
+                        <input
+                          type="text"
+                          placeholder="Item do combo"
+                          value={item}
+                          onChange={e => handleChangeEspetinhoComboItem(index, itemIndex, e.target.value)}
+                          style={{flex: 1, padding: '6px', border: '1px solid #ddd', borderRadius: '4px'}}
+                        />
+                        <button
+                          onClick={() => handleRemoveEspetinhoComboItem(index, itemIndex)}
+                          style={{
+                            background: '#dc3545',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => handleAddEspetinhoComboItem(index)}
+                      style={{
+                        background: '#17a2b8',
+                        color: 'white',
+                        border: 'none',
+                        padding: '8px 16px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                    >
+                      + Adicionar Item
+                    </button>
+                  </div>
+                  
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px'}}>
+                    <label style={{display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer'}}>
+                      <input
+                        type="checkbox"
+                        checked={combo.available}
+                        onChange={() => handleChangeEspetinhoCombo(index, 'available', !combo.available)}
+                      />
+                      <span style={{color: combo.available ? '#28a745' : '#dc3545', fontWeight: 'bold'}}>
+                        {combo.available ? 'Disponível' : 'Indisponível'}
+                      </span>
+                    </label>
+                    
+                    <button
+                      onClick={() => handleRemoveEspetinhoCombo(index)}
+                      style={{
+                        background: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        padding: '8px 16px',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Remover Combo
+                    </button>
+                  </div>
+                </div>
+              ))}
+              
+              <button
+                onClick={handleAddEspetinhoCombo}
+                style={{
+                  background: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  marginTop: '10px'
+                }}
+              >
+                + Adicionar Combo Espetinho
+              </button>
+            </div>
           </div>
         )}
 

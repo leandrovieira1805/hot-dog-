@@ -127,6 +127,35 @@ export const MenuProvider = ({ children }) => {
     { name: 'Cebola Caramelizada', price: 1.50 },
     { name: 'Cogumelos', price: 2.50 }
   ]);
+  const [espetinhoCombos, setEspetinhoCombos] = useState([
+    {
+      id: 1,
+      name: 'Combo 3x Espetinho Tradicional',
+      price: 25.00,
+      image: 'https://images.pexels.com/photos/2097090/pexels-photo-2097090.jpeg?auto=compress&cs=tinysrgb&w=400',
+      description: '3 espetinhos de frango + 1 refrigerante',
+      items: ['3x Espetinho de Frango', '1x Refrigerante'],
+      available: true
+    },
+    {
+      id: 2,
+      name: 'Combo 3x Espetinho Especial',
+      price: 35.00,
+      image: 'https://images.pexels.com/photos/2097090/pexels-photo-2097090.jpeg?auto=compress&cs=tinysrgb&w=400',
+      description: '3 espetinhos mistos + 1 refrigerante + batata frita',
+      items: ['2x Espetinho de Frango', '1x Espetinho de Carne', '1x Refrigerante', '1x Batata Frita'],
+      available: true
+    }
+  ]);
+  const [categories, setCategories] = useState([
+    { name: 'Hambúrgueres', icon: '🍔', enabled: true },
+    { name: 'Petiscos', icon: '🍟', enabled: true },
+    { name: 'Bebidas', icon: '🥤', enabled: true },
+    { name: 'Hot Dog', icon: '🌭', enabled: true },
+    { name: 'Bolos', icon: '🍰', enabled: true },
+    { name: 'Batata', icon: '🥔', enabled: true },
+    { name: 'Cuscuz', icon: '🌽', enabled: true }
+  ]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -158,6 +187,35 @@ export const MenuProvider = ({ children }) => {
             { name: 'Queijo Extra', price: 2.00 },
             { name: 'Cebola Caramelizada', price: 1.50 },
             { name: 'Cogumelos', price: 2.50 }
+          ]);
+          setEspetinhoCombos(firebaseData.espetinhoCombos || [
+            {
+              id: 1,
+              name: 'Combo 3x Espetinho Tradicional',
+              price: 25.00,
+              image: 'https://images.pexels.com/photos/2097090/pexels-photo-2097090.jpeg?auto=compress&cs=tinysrgb&w=400',
+              description: '3 espetinhos de frango + 1 refrigerante',
+              items: ['3x Espetinho de Frango', '1x Refrigerante'],
+              available: true
+            },
+            {
+              id: 2,
+              name: 'Combo 3x Espetinho Especial',
+              price: 35.00,
+              image: 'https://images.pexels.com/photos/2097090/pexels-photo-2097090.jpeg?auto=compress&cs=tinysrgb&w=400',
+              description: '3 espetinhos mistos + 1 refrigerante + batata frita',
+              items: ['2x Espetinho de Frango', '1x Espetinho de Carne', '1x Refrigerante', '1x Batata Frita'],
+              available: true
+            }
+          ]);
+          setCategories(firebaseData.categories || [
+            { name: 'Hambúrgueres', icon: '🍔', enabled: true },
+            { name: 'Petiscos', icon: '🍟', enabled: true },
+            { name: 'Bebidas', icon: '🥤', enabled: true },
+            { name: 'Hot Dog', icon: '🌭', enabled: true },
+            { name: 'Bolos', icon: '🍰', enabled: true },
+            { name: 'Batata', icon: '🥔', enabled: true },
+            { name: 'Cuscuz', icon: '🌽', enabled: true }
           ]);
           setLastUpdate(new Date(firebaseData.lastUpdate).getTime());
         } else {
@@ -235,6 +293,9 @@ export const MenuProvider = ({ children }) => {
             setPixName(data.pixName || '');
             setWhatsappNumber(data.whatsappNumber || '');
             setDeliveryFees(normalizeDeliveryFees(data.deliveryFees));
+            setAddOns(data.addOns || []);
+            setEspetinhoCombos(data.espetinhoCombos || []);
+            setCategories(data.categories || []);
             setLastUpdate(new Date(data.lastUpdate).getTime());
           } else {
             // Atualizar todos os dados
@@ -244,6 +305,9 @@ export const MenuProvider = ({ children }) => {
             setPixName(data.pixName || '');
             setWhatsappNumber(data.whatsappNumber || '');
             setDeliveryFees(normalizeDeliveryFees(data.deliveryFees));
+            setAddOns(data.addOns || []);
+            setEspetinhoCombos(data.espetinhoCombos || []);
+            setCategories(data.categories || []);
             setLastUpdate(new Date(data.lastUpdate).getTime());
           }
           
@@ -276,7 +340,10 @@ export const MenuProvider = ({ children }) => {
       pixKey,
       pixName,
       whatsappNumber,
-      deliveryFees
+      deliveryFees,
+      addOns,
+      espetinhoCombos,
+      categories
     };
     
     const success = await saveToFirebase(dataToSave);
@@ -389,6 +456,50 @@ export const MenuProvider = ({ children }) => {
     }
   };
 
+  // Função para atualizar categorias
+  const updateCategories = async (newCategories) => {
+    try {
+      const dataToSave = {
+        products,
+        dailyOffer,
+        pixKey,
+        pixName,
+        whatsappNumber,
+        deliveryFees,
+        addOns,
+        espetinhoCombos,
+        categories: newCategories
+      };
+      await saveToFirebase(dataToSave);
+      console.log('MenuContext: Categorias salvas no Firebase com sucesso');
+    } catch (error) {
+      console.error('MenuContext: Erro ao salvar categorias:', error);
+      throw error;
+    }
+  };
+
+  // Função para atualizar combos espetinho
+  const updateEspetinhoCombos = async (newCombos) => {
+    try {
+      const dataToSave = {
+        products,
+        dailyOffer,
+        pixKey,
+        pixName,
+        whatsappNumber,
+        deliveryFees,
+        addOns,
+        espetinhoCombos: newCombos,
+        categories
+      };
+      await saveToFirebase(dataToSave);
+      console.log('MenuContext: Combos espetinho salvos no Firebase com sucesso');
+    } catch (error) {
+      console.error('MenuContext: Erro ao salvar combos espetinho:', error);
+      throw error;
+    }
+  };
+
   // Função de login
   const login = (username, password) => {
     if (username === 'admin' && password === 'hotdog123') {
@@ -420,6 +531,9 @@ export const MenuProvider = ({ children }) => {
         setPixName(firebaseData.pixName || '');
         setWhatsappNumber(firebaseData.whatsappNumber || '');
         setDeliveryFees(normalizeDeliveryFees(firebaseData.deliveryFees));
+        setAddOns(firebaseData.addOns || []);
+        setEspetinhoCombos(firebaseData.espetinhoCombos || []);
+        setCategories(firebaseData.categories || []);
         setLastUpdate(new Date(firebaseData.lastUpdate).getTime());
         console.log('MenuContext: Sincronização concluída');
       } else {
@@ -466,6 +580,8 @@ export const MenuProvider = ({ children }) => {
       whatsappNumber,
       deliveryFees,
       addOns,
+      espetinhoCombos,
+      categories,
       isLoading,
       isSaving,
       lastUpdate,
@@ -477,6 +593,8 @@ export const MenuProvider = ({ children }) => {
       updateWhatsapp,
       updateFees,
       updateAddOns,
+      updateEspetinhoCombos,
+      updateCategories,
       login,
       logout,
       forceRefresh,
