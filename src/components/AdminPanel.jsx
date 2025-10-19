@@ -542,9 +542,17 @@ const AdminPanel = () => {
                     </button>
                     <button 
                       className="delete-btn"
-                      onClick={() => {
+                      onClick={async () => {
                         if (window.confirm(`Tem certeza que deseja excluir o produto "${product.name}"?`)) {
-                          deleteProduct(product.id);
+                          try {
+                            console.log('Tentando deletar produto:', product.id, product.name);
+                            await deleteProduct(product.id);
+                            console.log('Produto deletado com sucesso!');
+                            alert('Produto excluído com sucesso!');
+                          } catch (error) {
+                            console.error('Erro ao deletar produto:', error);
+                            alert(`Erro ao excluir produto: ${error.message}`);
+                          }
                         }
                       }}
                     >
