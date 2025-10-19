@@ -542,7 +542,11 @@ const AdminPanel = () => {
                     </button>
                     <button 
                       className="delete-btn"
-                      onClick={() => deleteProduct(product.id)}
+                      onClick={() => {
+                        if (window.confirm(`Tem certeza que deseja excluir o produto "${product.name}"?`)) {
+                          deleteProduct(product.id);
+                        }
+                      }}
                     >
                       <Trash2 size={16} />
                     </button>

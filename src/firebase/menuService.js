@@ -241,9 +241,19 @@ export const updateProduct = async (productId, updates) => {
 // Função para deletar produto (nova estrutura)
 export const deleteProduct = async (productId) => {
   try {
+    console.log('Firebase: Tentando deletar produto:', productId);
+    
+    // Verificar se o produto existe
     const productRef = doc(db, PRODUCTS_COLLECTION, productId);
+    const productSnap = await getDoc(productRef);
+    
+    if (!productSnap.exists()) {
+      console.log('Firebase: Produto não encontrado:', productId);
+      return false;
+    }
+    
     await deleteDoc(productRef);
-    console.log('Firebase: Produto deletado (nova estrutura):', productId);
+    console.log('Firebase: Produto deletado com sucesso:', productId);
     return true;
   } catch (error) {
     console.error('Firebase: Erro ao deletar produto:', error);
