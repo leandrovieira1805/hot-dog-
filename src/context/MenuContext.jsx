@@ -273,7 +273,6 @@ export const MenuProvider = ({ children }) => {
         console.log('MenuContext: Mudança detectada no Firebase, atualizando...');
         console.log(`📦 Produtos recebidos: ${data.products?.length || 0}`);
         console.log('MenuContext: Timestamp da mudança:', data.lastUpdate);
-        console.log('MenuContext: Produtos IDs:', data.products?.map(p => p.id).slice(-5));
         
         // Debounce para evitar múltiplas atualizações
         if (syncTimeout) {
@@ -281,38 +280,29 @@ export const MenuProvider = ({ children }) => {
         }
         
         const timeout = setTimeout(() => {
-          // Verificar se é apenas mudança nas configurações
-          const currentProductCount = products.length;
-          const newProductCount = data.products?.length || 0;
-          const isOnlyConfigChange = currentProductCount === newProductCount && 
-                                 (pixKey !== data.pixKey || pixName !== data.pixName || whatsappNumber !== (data.whatsappNumber || '') || JSON.stringify(deliveryFees) !== JSON.stringify(normalizeDeliveryFees(data.deliveryFees)));
-          
-          if (isOnlyConfigChange) {
-            console.log('⚙️ Apenas configurações alteradas, atualizando contexto');
-            setPixKey(data.pixKey || '');
-            setPixName(data.pixName || '');
-            setWhatsappNumber(data.whatsappNumber || '');
-            setDeliveryFees(normalizeDeliveryFees(data.deliveryFees));
-            setAddOns(data.addOns || []);
-            setEspetinhoCombos(data.espetinhoCombos || []);
-            setCategories(data.categories || []);
-            setLastUpdate(new Date(data.lastUpdate).getTime());
-          } else {
-            // Atualizar todos os dados
-            setProducts(data.products || []);
-            setDailyOffer(data.dailyOffer || null);
-            setPixKey(data.pixKey || '');
-            setPixName(data.pixName || '');
-            setWhatsappNumber(data.whatsappNumber || '');
-            setDeliveryFees(normalizeDeliveryFees(data.deliveryFees));
-            setAddOns(data.addOns || []);
-            setEspetinhoCombos(data.espetinhoCombos || []);
-            setCategories(data.categories || []);
-            setLastUpdate(new Date(data.lastUpdate).getTime());
-          }
+          // Sempre atualizar todos os dados para evitar inconsistências
+          console.log('🔄 Atualizando todos os dados do Firebase...');
+          setProducts(data.products || []);
+          setDailyOffer(data.dailyOffer || null);
+          setPixKey(data.pixKey || '');
+          setPixName(data.pixName || '');
+          setWhatsappNumber(data.whatsappNumber || '');
+          setDeliveryFees(normalizeDeliveryFees(data.deliveryFees));
+          setAddOns(data.addOns || []);
+          setEspetinhoCombos(data.espetinhoCombos || []);
+          setCategories(data.categories || [
+            { name: 'Hambúrgueres', icon: '🍔', enabled: true },
+            { name: 'Petiscos', icon: '🍟', enabled: true },
+            { name: 'Bebidas', icon: '🥤', enabled: true },
+            { name: 'Hot Dog', icon: '🌭', enabled: true },
+            { name: 'Bolos', icon: '🍰', enabled: true },
+            { name: 'Batata', icon: '🥔', enabled: true },
+            { name: 'Cuscuz', icon: '🌽', enabled: true }
+          ]);
+          setLastUpdate(new Date(data.lastUpdate).getTime());
           
           console.log('✅ Dados atualizados com sucesso');
-        }, 100); // 100ms de debounce
+        }, 200); // Aumentado para 200ms para mais estabilidade
         
         setSyncTimeout(timeout);
       }

@@ -24,7 +24,19 @@ const CustomerView = () => {
     }
   }, [dailyOffer]);
 
-  const enabledCategories = categories.filter(cat => cat.enabled);
+  // Proteção contra categorias vazias durante carregamento
+  const defaultCategories = [
+    { name: 'Hambúrgueres', icon: '🍔', enabled: true },
+    { name: 'Petiscos', icon: '🍟', enabled: true },
+    { name: 'Bebidas', icon: '🥤', enabled: true },
+    { name: 'Hot Dog', icon: '🌭', enabled: true },
+    { name: 'Bolos', icon: '🍰', enabled: true },
+    { name: 'Batata', icon: '🥔', enabled: true },
+    { name: 'Cuscuz', icon: '🌽', enabled: true }
+  ];
+  
+  const safeCategories = categories && categories.length > 0 ? categories : defaultCategories;
+  const enabledCategories = safeCategories.filter(cat => cat.enabled);
   const categoryNames = ['Todos', ...enabledCategories.map(cat => cat.name)];
   const burgerSubcategories = ['Todos', 'Tradicional', 'Artesanal'];
 
@@ -108,7 +120,7 @@ const CustomerView = () => {
                 className={`category-tab ${selectedCategory === category ? 'active' : ''}`}
                 onClick={() => { setSelectedCategory(category); setSelectedSubcategory('Todos'); }}
               >
-                {category === 'Todos' ? category : enabledCategories.find(cat => cat.name === category)?.icon} {category}
+                {category === 'Todos' ? category : safeCategories.find(cat => cat.name === category)?.icon} {category}
               </button>
             ))}
           </div>
