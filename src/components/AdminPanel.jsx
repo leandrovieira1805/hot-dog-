@@ -83,7 +83,17 @@ const AdminPanel = () => {
   }, [addOns]);
 
   useEffect(() => {
-    setLocalCategories(categories || []);
+    // Fallback para categorias padrão se não houver categorias
+    const defaultCategories = [
+      { name: 'Hambúrgueres', icon: '🍔', enabled: true },
+      { name: 'Petiscos', icon: '🍟', enabled: true },
+      { name: 'Bebidas', icon: '🥤', enabled: true },
+      { name: 'Hot Dog', icon: '🌭', enabled: true },
+      { name: 'Bolos', icon: '🍰', enabled: true },
+      { name: 'Batata', icon: '🥔', enabled: true },
+      { name: 'Cuscuz', icon: '🌽', enabled: true }
+    ];
+    setLocalCategories(categories && categories.length > 0 ? categories : defaultCategories);
   }, [categories]);
 
   useEffect(() => {
@@ -546,9 +556,14 @@ const AdminPanel = () => {
                         if (window.confirm(`Tem certeza que deseja excluir o produto "${product.name}"?`)) {
                           try {
                             console.log('Tentando deletar produto:', product.id, product.name);
-                            await deleteProduct(product.id);
-                            console.log('Produto deletado com sucesso!');
-                            alert('Produto excluído com sucesso!');
+                            const result = await deleteProduct(product.id);
+                            if (result) {
+                              console.log('Produto deletado com sucesso!');
+                              alert('Produto excluído com sucesso!');
+                            } else {
+                              console.log('Produto não foi encontrado');
+                              alert('Produto não foi encontrado');
+                            }
                           } catch (error) {
                             console.error('Erro ao deletar produto:', error);
                             alert(`Erro ao excluir produto: ${error.message}`);

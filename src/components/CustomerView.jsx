@@ -73,7 +73,7 @@ const CustomerView = () => {
       {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-content">
-          <img src="/logo-arretado.png" alt="Logo Arretado Burger" className="hero-logo" style={{ maxWidth: '320px', width: '100%', height: 'auto', margin: '0 auto', display: 'block' }} />
+          <img src="/logo-arretado.png" alt="Logo Arretado Burger" className="hero-logo" style={{ maxWidth: '720px', width: '100%', height: 'auto', margin: '0 auto', display: 'block' }} />
           <p className="hero-subtitle">Sabores autênticos que conquistam corações</p>
           
           <div className="restaurant-info">
