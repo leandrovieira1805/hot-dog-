@@ -1030,7 +1030,7 @@ const AdminPanel = () => {
                         }}
                       />
                       {offerForm.image && (
-                        <img src={offerForm.image} alt="Preview" style={{ maxWidth: '120px', marginTop: '8px', borderRadius: '8px' }} />
+                        <img src={offerForm.image} alt="Preview" style={{ maxWidth: '120px', marginTop: '809px', borderRadius: '804px' }} />
                       )}
                     </div>
 
