@@ -30,7 +30,8 @@ const AdminPanel = () => {
     forceRefresh,
     clearData,
     restoreDefaults,
-    logout 
+    logout,
+    removeOffer 
   } = useMenu();
   
   const navigate = useNavigate();
@@ -339,7 +340,7 @@ const AdminPanel = () => {
     e.preventDefault();
     
     const offerData = {
-      id: Date.now(),
+      id: dailyOffer ? dailyOffer.id : Date.now(), // Mantém ID ao editar
       name: offerForm.name,
       description: offerForm.description,
       price: parseFloat(offerForm.price),
@@ -352,7 +353,7 @@ const AdminPanel = () => {
   };
 
   const handleRemoveOffer = () => {
-    setOffer(null);
+    removeOffer();
   };
 
   if (!isAuthenticated) {
@@ -936,13 +937,23 @@ const AdminPanel = () => {
           <div className="offers-section">
             <div className="section-header">
               <h2>Oferta do Dia</h2>
-              {!dailyOffer && (
+              {!showOfferForm && (
                 <button 
                   className="add-btn"
-                  onClick={() => setShowOfferForm(true)}
+                  onClick={() => {
+                    if (dailyOffer) {
+                      setOfferForm({
+                        name: dailyOffer.name,
+                        description: dailyOffer.description,
+                        price: dailyOffer.price.toString(),
+                        image: dailyOffer.image
+                      });
+                    }
+                    setShowOfferForm(true);
+                  }}
                 >
                   <Plus size={20} />
-                  Criar Oferta
+                  {dailyOffer ? 'Editar Oferta' : 'Criar Oferta'}
                 </button>
               )}
             </div>
@@ -973,10 +984,14 @@ const AdminPanel = () => {
               <div className="modal-overlay">
                 <div className="modal">
                   <div className="modal-header">
-                    <h3>Criar Oferta do Dia</h3>
+                    <h3>{dailyOffer ? 'Editar Oferta do Dia' : 'Criar Oferta do Dia'}</h3>
                     <button 
                       className="close-modal-btn"
-                      onClick={() => setShowOfferForm(false)}
+                      onClick={() => {
+                        setShowOfferForm(false);
+                        // Limpar formulário ao fechar
+                        setOfferForm({ name: '', description: '', price: '', image: '' });
+                      }}
                     >
                       <X size={24} />
                     </button>
@@ -1034,10 +1049,31 @@ const AdminPanel = () => {
                       )}
                     </div>
 
-                    <button type="submit" className="save-btn">
-                      <Save size={20} />
-                      Criar Oferta
-                    </button>
+                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                      <button 
+                        type="button" 
+                        className="cancel-btn"
+                        onClick={() => {
+                          setShowOfferForm(false);
+                          setOfferForm({ name: '', description: '', price: '', image: '' });
+                        }}
+                        style={{
+                          background: '#6c757d',
+                          color: 'white',
+                          border: 'none',
+                          padding: '10px 20px',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        Cancelar
+                      </button>
+                      <button type="submit" className="save-btn">
+                        <Save size={20} />
+                        {dailyOffer ? 'Atualizar Oferta' : 'Criar Oferta'}
+                      </button>
+                    </div>
                   </form>
                 </div>
               </div>
