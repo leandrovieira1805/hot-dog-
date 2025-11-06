@@ -1250,7 +1250,7 @@ input::placeholder, textarea::placeholder {
     margin-right: auto;
   }
   .hero-logo {
-    max-width: 180px !important;
+    max-width: 420px !important;
   }
   .search-categories-section {
     padding: 1rem 0;
