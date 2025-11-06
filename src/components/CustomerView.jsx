@@ -7,7 +7,7 @@ import DailyOfferModal from './DailyOfferModal';
 import { ShoppingCart, Search, MapPin, Clock, Star, Plus } from 'lucide-react';
 
 const CustomerView = () => {
-  const { products, dailyOffer, categories, espetinhoCombos } = useMenu();
+  const { products, dailyOffer, categories, espetinhoCombos, removeOffer } = useMenu();
   const { isCartOpen, setIsCartOpen, getTotalItems, addToCart } = useCart();
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,11 +16,8 @@ const CustomerView = () => {
 
   useEffect(() => {
     if (dailyOffer) {
-      const hasSeenOffer = sessionStorage.getItem('hotdog_seen_offer');
-      if (!hasSeenOffer) {
-        setShowOfferModal(true);
-        sessionStorage.setItem('hotdog_seen_offer', 'true');
-      }
+      // Mostrar a oferta sempre que houver uma nova oferta do dia
+      setShowOfferModal(true);
     }
   }, [dailyOffer]);
 
@@ -142,7 +139,7 @@ const CustomerView = () => {
 
       {/* Oferta do Dia - botão/aba */}
       {dailyOffer && (
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '16px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '16px 0', alignItems: 'center', gap: '10px' }}>
           <button
             className="offer-tab-btn"
             onClick={() => setShowOfferModal(true)}
@@ -163,6 +160,25 @@ const CustomerView = () => {
             }}
           >
             <span role="img" aria-label="oferta">🔥</span> Oferta do Dia
+          </button>
+          <button
+            onClick={() => removeOffer()}
+            style={{
+              background: '#666',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '50%',
+              width: '30px',
+              height: '30px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            title="Remover oferta do dia"
+          >
+            ×
           </button>
         </div>
       )}

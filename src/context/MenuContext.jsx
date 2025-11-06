@@ -395,6 +395,17 @@ export const MenuProvider = ({ children }) => {
     }
   };
 
+  // Função para remover oferta do dia
+  const removeOffer = async () => {
+    try {
+      await firebaseSetDailyOffer(null);
+      console.log('MenuContext: Oferta removida do Firebase com sucesso');
+    } catch (error) {
+      console.error('MenuContext: Erro ao remover oferta:', error);
+      throw error;
+    }
+  };
+
   // Função para atualizar configuração Pix
   const updatePixConfig = async (key, name) => {
     try {
@@ -569,6 +580,7 @@ export const MenuProvider = ({ children }) => {
       updateProduct,
       deleteProduct,
       setOffer,
+      removeOffer,
       updatePixConfig,
       updateWhatsapp,
       updateFees,
