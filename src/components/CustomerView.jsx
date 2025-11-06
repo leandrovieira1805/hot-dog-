@@ -10,16 +10,17 @@ const CustomerView = () => {
   const { products, dailyOffer, categories, espetinhoCombos } = useMenu();
   const { isCartOpen, setIsCartOpen, getTotalItems, addToCart } = useCart();
   const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offerClosedThisSession, setOfferClosedThisSession] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [selectedSubcategory, setSelectedSubcategory] = useState('Todos');
 
   useEffect(() => {
-    if (dailyOffer) {
-      // Mostrar a oferta automaticamente quando houver oferta do dia
+    if (dailyOffer && !offerClosedThisSession) {
+      // Mostrar a oferta automaticamente quando houver oferta do dia e não foi fechada
       setShowOfferModal(true);
     }
-  }, [dailyOffer]);
+  }, [dailyOffer, offerClosedThisSession]);
 
   // Proteção contra categorias vazias durante carregamento
   const defaultCategories = [
@@ -36,6 +37,17 @@ const CustomerView = () => {
   const enabledCategories = safeCategories.filter(cat => cat.enabled);
   const categoryNames = ['Todos', ...enabledCategories.map(cat => cat.name)];
   const burgerSubcategories = ['Todos', 'Tradicional', 'Artesanal'];
+
+  // Função para fechar a oferta apenas nesta sessão
+  const handleCloseOffer = () => {
+    setShowOfferModal(false);
+    setOfferClosedThisSession(true);
+  };
+
+  // Função para reabrir a oferta
+  const handleReopenOffer = () => {
+    setShowOfferModal(true);
+  };
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -142,16 +154,16 @@ const CustomerView = () => {
         <div style={{ display: 'flex', justifyContent: 'center', margin: '16px 0' }}>
           <button
             className="offer-tab-btn"
-            onClick={() => setShowOfferModal(true)}
+            onClick={handleReopenOffer}
             style={{
-              background: '#ff6b6b',
+              background: offerClosedThisSession ? '#ff8e53' : '#ff6b6b',
               color: '#fff',
               border: 'none',
               borderRadius: '24px',
               padding: '0.75rem 2rem',
               fontWeight: 700,
               fontSize: '1.1rem',
-              boxShadow: '0 4px 16px rgba(255,107,107,0.15)',
+              boxShadow: offerClosedThisSession ? '0 4px 16px rgba(255,142,83,0.15)' : '0 4px 16px rgba(255,107,107,0.15)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -159,7 +171,8 @@ const CustomerView = () => {
               transition: 'background 0.2s',
             }}
           >
-            <span role="img" aria-label="oferta">🔥</span> Oferta do Dia
+            <span role="img" aria-label="oferta">🔥</span> 
+            {offerClosedThisSession ? 'Ver Oferta do Dia' : 'Oferta do Dia'}
           </button>
         </div>
       )}
@@ -233,7 +246,7 @@ const CustomerView = () => {
       {showOfferModal && dailyOffer && (
         <DailyOfferModal 
           offer={dailyOffer} 
-          onClose={() => setShowOfferModal(false)} 
+          onClose={handleCloseOffer} 
         />
       )}
     </div>
