@@ -33,7 +33,7 @@ input::placeholder, textarea::placeholder {
 /* Hero Section */
 .hero-section {
   background: url('/hero-arretado.jpg') center center/cover no-repeat !important;
-  min-height: 100vh;
+  min-height: 20vh; /* antes era 100vh, agora ocupa 20% a mais da tela */
   display: flex;
   align-items: center;
   position: relative;
