@@ -1249,14 +1249,23 @@ input::placeholder, textarea::placeholder {
     margin-left: auto;
     margin-right: auto;
   }
+/* ===== LOGO DESTAQUE ===== */
 .hero-logo {
   display: block;
-  margin: 1rem auto;
-  max-width: 420px !important;
+  margin: 2rem auto 1rem auto;
+  max-width: 95vw !important; /* ocupa quase toda a largura da tela */
+  width: 420px;
   height: auto;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.15));
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+  transition: all 0.3s ease;
 }
 
+.hero-logo:hover {
+  transform: scale(1.03);
+  filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.4));
+}
+
+/* ===== SEÇÕES ===== */
 .search-categories-section {
   padding: 1rem 0;
 }
@@ -1284,6 +1293,7 @@ input::placeholder, textarea::placeholder {
   border-color: #ff4500;
 }
 
+/* ===== PRODUTOS ===== */
 .product-card-modern {
   padding: 0.5rem;
   background: #111;
@@ -1338,51 +1348,52 @@ input::placeholder, textarea::placeholder {
   background: #ff4500;
 }
 
-/* ===== Ajustes para celular ===== */
+/* ===== MODO CELULAR ===== */
 @media (max-width: 480px) {
   body {
     padding: 0.5rem;
     background: #000;
   }
-  
+
   .hero-logo {
-    max-width: 240px !important;
+    max-width: 320px !important;
     margin-top: 0.5rem;
+    filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.4));
   }
-  
+
   .products-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .cart-item {
     flex-direction: column;
     text-align: center;
     gap: 1rem;
   }
-  
+
   .cart-item-controls {
     justify-content: center;
   }
-  
+
   .section-header h2 {
     font-size: 1.5rem;
     text-align: center;
   }
-  
+
   .product-title {
     font-size: 1rem;
   }
-  
+
   .product-price {
     font-size: 1.2rem;
   }
-  
+
   .hero-title {
     font-size: 1.8rem;
     text-align: center;
     margin-top: 0.5rem;
   }
-  
+
   .category-tab {
     font-size: 0.9rem;
     padding: 0.6rem 1rem;
