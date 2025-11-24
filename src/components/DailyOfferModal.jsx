@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Plus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
+// DailyOfferModal (componente)
 const DailyOfferModal = ({ offer, onClose }) => {
   const { addToCart } = useCart();
 
@@ -22,7 +23,7 @@ const DailyOfferModal = ({ offer, onClose }) => {
 
         <div className="modal-content">
           <div className="offer-image">
-            <img src={offer.image} alt={offer.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={offer.image} alt={offer.name} />
           </div>
           
           <div className="offer-info">

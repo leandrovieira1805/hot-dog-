@@ -701,10 +701,11 @@ input::placeholder, textarea::placeholder {
   padding: 1.5rem;
 }
 
+/* Imagem da Oferta do Dia sem cortes: garante que a imagem cabe inteira no modal sem cortes */
 .offer-image {
   width: 100%;
   height: auto;
-  max-height: 300px;
+  max-height: 70vh; /* usa a altura da viewport para caber inteira */
   overflow: hidden;
   border-radius: 16px;
   margin-bottom: 1.5rem;
@@ -718,8 +719,8 @@ input::placeholder, textarea::placeholder {
 .offer-image img {
   width: 100%;
   height: auto;
-  max-height: 300px;
-  object-fit: contain;
+  max-height: 70vh;   /* limita para não estourar o modal */
+  object-fit: contain;/* mostra a imagem completa, sem cortes */
   object-position: center;
 }
 
