@@ -42,6 +42,7 @@ const AdminPanel = () => {
 
   const [productForm, setProductForm] = useState({
     name: '',
+    description: '',
     price: '',
     image: '',
     category: 'Hambúrgueres',
@@ -305,6 +306,7 @@ const AdminPanel = () => {
     
     const productData = {
       name: productForm.name,
+      description: productForm.description,
       price: parseFloat(productForm.price),
       image: productForm.image,
       category: productForm.category,
@@ -319,7 +321,7 @@ const AdminPanel = () => {
       addProduct(productData);
     }
 
-    setProductForm({ name: '', price: '', image: '', category: 'Hambúrgueres', subcategory: 'Tradicional', available: true });
+    setProductForm({ name: '', description: '', price: '', image: '', category: 'Hambúrgueres', subcategory: 'Tradicional', available: true });
     setShowProductForm(false);
   };
 
@@ -327,6 +329,7 @@ const AdminPanel = () => {
     setEditingProduct(product);
     setProductForm({
       name: product.name,
+      description: product.description || '',
       price: product.price.toString(),
       image: product.image,
       category: product.category || 'Lanches',
@@ -524,7 +527,7 @@ const AdminPanel = () => {
                 className="add-btn"
                 onClick={() => {
                   setEditingProduct(null);
-                  setProductForm({ name: '', price: '', image: '', category: 'Hambúrgueres', subcategory: 'Tradicional', available: true });
+                  setProductForm({ name: '', description: '', price: '', image: '', category: 'Hambúrgueres', subcategory: 'Tradicional', available: true });
                   setShowProductForm(true);
                 }}
               >
@@ -620,6 +623,15 @@ const AdminPanel = () => {
                         value={productForm.name}
                         onChange={(e) => setProductForm({...productForm, name: e.target.value})}
                         required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Descrição:</label>
+                      <textarea
+                        placeholder="Ex.: pão, salsicha, milho, ervilha, batata palha..."
+                        value={productForm.description}
+                        onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                        rows={3}
                       />
                     </div>
 
