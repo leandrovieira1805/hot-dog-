@@ -25,7 +25,7 @@ const DailyOfferModal = ({ offer, onClose }) => {
           <div className="offer-image">
             <img src={offer.image} alt={offer.name} />
           </div>
-          
+
           <div className="offer-info">
             <h3>{offer.name}</h3>
             <p className="offer-description">{offer.description}</p>
