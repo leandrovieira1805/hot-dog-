@@ -378,12 +378,13 @@ input::placeholder, textarea::placeholder {
   margin-bottom: 1rem;
   margin-top: 0.75rem;
   line-height: 1.6;
-  min-height: 2.5rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-height: auto;
+  display: block;
+  line-clamp: unset; /* compat com -webkit-line-clamp */
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: unset;
+  overflow: visible;
+  text-overflow: unset;
   font-weight: 400;
   padding: 0.5rem 0;
   border-top: 1px solid #f1f5f9;
@@ -1561,36 +1562,6 @@ input::placeholder, textarea::placeholder {
   }
 }
 
-  .cart-item {
-    flex-direction: column;
-    text-align: center;
-    gap: 1rem;
-  }
-
-  .cart-item-controls {
-    justify-content: center;
-  }
-
-  .section-header h2 {
-    font-size: 1.75rem;
-  }
-
-  .product-title {
-    font-size: 1.125rem;
-  }
-
-  .product-price {
-    font-size: 1.25rem;
-  }
-
-  .hero-title {
-    font-size: 2rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1rem;
-  }
-}
 
 .header {
   background: url('/hero-arretado.jpg') center center/cover no-repeat !important;
@@ -1708,20 +1679,6 @@ input::placeholder, textarea::placeholder {
 .checkout-modal-content input:focus,
 .checkout-modal-content select:focus {
   outline: 2px solid #ff6b6b;
-}
-
-.close-modal-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-  transition: background 0.2s;
-}
-.close-modal-btn:hover {
-  background: #222;
 }
 
 .offer-close-black {

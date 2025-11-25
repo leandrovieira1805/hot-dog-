@@ -5,7 +5,7 @@ import { useMenu } from '../context/MenuContext';
 
 // Dentro do componente: ProductCard
 // Dentro do componente ProductCard: exibir a descrição no card
-const ProductCard = ({ product }) => {
+function ProductCard({ product }) {
   const { addToCart } = useCart();
   const { addOns } = useMenu();
   const [showCustomization, setShowCustomization] = useState(false);

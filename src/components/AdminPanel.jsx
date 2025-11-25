@@ -721,7 +721,7 @@ const AdminPanel = () => {
                         📝 Descrição do Produto:
                       </label>
                       <textarea
-                        placeholder="Ex.: pão, salsicha, milho, ervilha, batata palha, queijo ralado, molho especial..."
+                        placeholder="Ex.: pão, salsicha, milho, ervilha, batata palha..."
                         value={productForm.description || ''}
                         onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                         rows={4}
@@ -732,7 +732,7 @@ const AdminPanel = () => {
                           fontSize: '0.95rem'
                         }}
                       />
-                      <small style={{ color: '#28a745', fontSize: '0.85rem', marginTop: '6px', display: 'block', fontWeight: '500' }}>
+                      <small style={{ color: '#28a745' }}>
                         ✓ A descrição aparecerá no card do produto para os clientes visualizarem
                       </small>
                     </div>
