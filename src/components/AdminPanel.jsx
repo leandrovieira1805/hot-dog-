@@ -15,6 +15,10 @@ const AdminPanel = () => {
     addOns,
     espetinhoCombos,
     categories,
+    logoImage,
+    backgroundImage,
+    address,
+    openingHours,
     lastUpdate,
     isSaving,
     addProduct, 
@@ -27,6 +31,7 @@ const AdminPanel = () => {
     updateAddOns,
     updateEspetinhoCombos,
     updateCategories,
+    updateSiteConfig,
     forceRefresh,
     clearData,
     restoreDefaults,
@@ -65,6 +70,10 @@ const AdminPanel = () => {
   const [localAddOns, setLocalAddOns] = useState(addOns || []);
   const [localCategories, setLocalCategories] = useState(categories || []);
   const [localEspetinhoCombos, setLocalEspetinhoCombos] = useState(espetinhoCombos || []);
+  const [localLogoImage, setLocalLogoImage] = useState(logoImage || '/logo-arretado.png');
+  const [localBackgroundImage, setLocalBackgroundImage] = useState(backgroundImage || '/hero-arretado.jpg');
+  const [localAddress, setLocalAddress] = useState(address || 'Terezinha Nunes');
+  const [localOpeningHours, setLocalOpeningHours] = useState(openingHours || '15:00 - 23:00');
 
   // Sincronizar com o contexto
   useEffect(() => {
@@ -101,6 +110,46 @@ const AdminPanel = () => {
   useEffect(() => {
     setLocalEspetinhoCombos(espetinhoCombos || []);
   }, [espetinhoCombos]);
+
+  useEffect(() => {
+    setLocalLogoImage(logoImage || '/logo-arretado.png');
+  }, [logoImage]);
+
+  useEffect(() => {
+    setLocalBackgroundImage(backgroundImage || '/hero-arretado.jpg');
+  }, [backgroundImage]);
+
+  useEffect(() => {
+    setLocalAddress(address || 'Terezinha Nunes');
+  }, [address]);
+
+  useEffect(() => {
+    setLocalOpeningHours(openingHours || '15:00 - 23:00');
+  }, [openingHours]);
+
+  // Salvar configurações do site com debounce
+  const saveSiteConfigDebounced = (logo, bg, addr, hours) => {
+    if (window.siteConfigTimeout) clearTimeout(window.siteConfigTimeout);
+    window.siteConfigTimeout = setTimeout(() => {
+      updateSiteConfig(logo, bg, addr, hours);
+    }, 500);
+  };
+
+  const handleSiteConfigChange = (field, value) => {
+    if (field === 'logo') {
+      setLocalLogoImage(value);
+      saveSiteConfigDebounced(value, localBackgroundImage, localAddress, localOpeningHours);
+    } else if (field === 'background') {
+      setLocalBackgroundImage(value);
+      saveSiteConfigDebounced(localLogoImage, value, localAddress, localOpeningHours);
+    } else if (field === 'address') {
+      setLocalAddress(value);
+      saveSiteConfigDebounced(localLogoImage, localBackgroundImage, value, localOpeningHours);
+    } else if (field === 'hours') {
+      setLocalOpeningHours(value);
+      saveSiteConfigDebounced(localLogoImage, localBackgroundImage, localAddress, value);
+    }
+  };
 
   // Salvar Pix no contexto ao alterar
   const handlePixChange = (key, name) => {
@@ -529,6 +578,12 @@ const AdminPanel = () => {
           onClick={() => setActiveTab('offers')}
         >
           Oferta do Dia
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'site' ? 'active' : ''}`}
+          onClick={() => setActiveTab('site')}
+        >
+          Configurações do Site
         </button>
       </div>
 
@@ -1149,6 +1204,151 @@ const AdminPanel = () => {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'site' && (
+          <div className="site-config-section">
+            <div className="section-header">
+              <h2>Configurações do Site</h2>
+              <p style={{color: '#666', fontSize: '14px'}}>
+                Personalize a aparência do seu site
+              </p>
+            </div>
+
+            <div className="site-config-form" style={{
+              background: '#f8f9fa',
+              padding: '2rem',
+              borderRadius: '12px',
+              maxWidth: '800px',
+              margin: '0 auto',
+              width: '100%'
+            }}>
+              <div className="form-group" style={{ marginBottom: '2rem' }}>
+                <label style={{ fontWeight: '700', fontSize: '1.1rem', marginBottom: '0.5rem', display: 'block' }}>
+                  🖼️ Logo do Site:
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        handleSiteConfigChange('logo', reader.result);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  style={{ marginBottom: '1rem' }}
+                />
+                {localLogoImage && (
+                  <div style={{ marginTop: '1rem' }}>
+                    <p style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: '#666' }}>Preview:</p>
+                    <img 
+                      src={localLogoImage} 
+                      alt="Logo Preview" 
+                      style={{ 
+                        maxWidth: '300px', 
+                        width: '100%', 
+                        height: 'auto', 
+                        borderRadius: '8px',
+                        border: '2px solid #dee2e6'
+                      }} 
+                    />
+                  </div>
+                )}
+                <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '0.5rem' }}>
+                  A logo aparecerá no topo do site
+                </small>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '2rem' }}>
+                <label style={{ fontWeight: '700', fontSize: '1.1rem', marginBottom: '0.5rem', display: 'block' }}>
+                  🎨 Imagem de Fundo (Background):
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        handleSiteConfigChange('background', reader.result);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  style={{ marginBottom: '1rem' }}
+                />
+                {localBackgroundImage && (
+                  <div style={{ marginTop: '1rem' }}>
+                    <p style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: '#666' }}>Preview:</p>
+                    <img 
+                      src={localBackgroundImage} 
+                      alt="Background Preview" 
+                      style={{ 
+                        maxWidth: '400px', 
+                        width: '100%', 
+                        height: '200px',
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                        border: '2px solid #dee2e6'
+                      }} 
+                    />
+                  </div>
+                )}
+                <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '0.5rem' }}>
+                  A imagem de fundo aparecerá atrás da logo no topo do site
+                </small>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '2rem' }}>
+                <label style={{ fontWeight: '700', fontSize: '1.1rem', marginBottom: '0.5rem', display: 'block' }}>
+                  📍 Endereço:
+                </label>
+                <input
+                  type="text"
+                  value={localAddress}
+                  onChange={(e) => handleSiteConfigChange('address', e.target.value)}
+                  placeholder="Ex: Terezinha Nunes"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '2px solid #dee2e6',
+                    borderRadius: '8px',
+                    fontSize: '1rem'
+                  }}
+                />
+                <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '0.5rem' }}>
+                  O endereço aparecerá abaixo da logo no site
+                </small>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '2rem' }}>
+                <label style={{ fontWeight: '700', fontSize: '1.1rem', marginBottom: '0.5rem', display: 'block' }}>
+                  🕐 Horário de Atendimento:
+                </label>
+                <input
+                  type="text"
+                  value={localOpeningHours}
+                  onChange={(e) => handleSiteConfigChange('hours', e.target.value)}
+                  placeholder="Ex: 15:00 - 23:00"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '2px solid #dee2e6',
+                    borderRadius: '8px',
+                    fontSize: '1rem'
+                  }}
+                />
+                <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '0.5rem' }}>
+                  O horário aparecerá abaixo da logo no site
+                </small>
+              </div>
+            </div>
           </div>
         )}
       </div>
