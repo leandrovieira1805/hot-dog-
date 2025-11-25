@@ -100,13 +100,11 @@ const ProductCard = ({ product }) => {
         
         <div className="product-content">
           <h3 className="product-title">{product.name}</h3>
-          {product.description ? (
-            <p className="product-description" title={product.description}>{product.description}</p>
-          ) : (
-            <p className="product-description" style={{ color: '#cbd5e1', fontStyle: 'italic' }}>
-              Sem descrição
+          {product.description && product.description.trim() ? (
+            <p className="product-description" title={product.description}>
+              {product.description}
             </p>
-          )}
+          ) : null}
           <div className="product-footer">
             <div className="price-container">
               <span className="product-price">R$ {product.price.toFixed(2)}</span>

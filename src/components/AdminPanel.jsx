@@ -306,13 +306,20 @@ const AdminPanel = () => {
     
     const productData = {
       name: productForm.name,
-      description: productForm.description,
+      description: productForm.description || '', // Garantir que sempre tenha descrição (mesmo que vazia)
       price: parseFloat(productForm.price),
       image: productForm.image,
       category: productForm.category,
       ...(productForm.category === 'Hambúrgueres' ? { subcategory: productForm.subcategory } : {}),
       available: productForm.available
     };
+    
+    // Log para debug
+    console.log('Salvando produto:', {
+      name: productData.name,
+      description: productData.description,
+      hasDescription: !!productData.description && productData.description.trim().length > 0
+    });
 
     if (editingProduct) {
       updateProduct(editingProduct.id, productData);
