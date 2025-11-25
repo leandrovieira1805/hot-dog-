@@ -11,6 +11,7 @@ import {
   updateDeliveryFees as firebaseUpdateDeliveryFees,
   updateAddOns as firebaseUpdateAddOns,
   updateCategories as firebaseUpdateCategories,
+  updateSiteConfig as firebaseUpdateSiteConfig,
   clearAllData as firebaseClearAllData,
   restoreDefaultData as firebaseRestoreDefaultData,
   subscribeToMenuChanges
@@ -118,6 +119,10 @@ export const MenuProvider = ({ children }) => {
   const [pixKey, setPixKey] = useState('');
   const [pixName, setPixName] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [logoImage, setLogoImage] = useState('/logo-arretado.png');
+  const [backgroundImage, setBackgroundImage] = useState('/hero-arretado.jpg');
+  const [address, setAddress] = useState('Terezinha Nunes');
+  const [openingHours, setOpeningHours] = useState('15:00 - 23:00');
   const [deliveryFees, setDeliveryFees] = useState([
     { name: 'Lagoa Grande', fee: 4 },
     { name: 'Izacolândia', fee: 5 }
@@ -182,6 +187,10 @@ export const MenuProvider = ({ children }) => {
           setPixKey(firebaseData.pixKey || '');
           setPixName(firebaseData.pixName || '');
           setWhatsappNumber(firebaseData.whatsappNumber || '');
+          setLogoImage(firebaseData.logoImage || '/logo-arretado.png');
+          setBackgroundImage(firebaseData.backgroundImage || '/hero-arretado.jpg');
+          setAddress(firebaseData.address || 'Terezinha Nunes');
+          setOpeningHours(firebaseData.openingHours || '15:00 - 23:00');
           setDeliveryFees(normalizeDeliveryFees(firebaseData.deliveryFees));
           setAddOns(firebaseData.addOns || [
             { name: 'Bacon', price: 3.50 },
@@ -226,6 +235,10 @@ export const MenuProvider = ({ children }) => {
           setPixKey('');
           setPixName('');
           setWhatsappNumber('');
+          setLogoImage('/logo-arretado.png');
+          setBackgroundImage('/hero-arretado.jpg');
+          setAddress('Terezinha Nunes');
+          setOpeningHours('15:00 - 23:00');
           setDeliveryFees([
             { name: 'Lagoa Grande', fee: 4 },
             { name: 'Izacolândia', fee: 5 }
@@ -288,6 +301,10 @@ export const MenuProvider = ({ children }) => {
           setPixKey(data.pixKey || '');
           setPixName(data.pixName || '');
           setWhatsappNumber(data.whatsappNumber || '');
+          setLogoImage(data.logoImage || '/logo-arretado.png');
+          setBackgroundImage(data.backgroundImage || '/hero-arretado.jpg');
+          setAddress(data.address || 'Terezinha Nunes');
+          setOpeningHours(data.openingHours || '15:00 - 23:00');
           setDeliveryFees(normalizeDeliveryFees(data.deliveryFees));
           setAddOns(data.addOns || []);
           setEspetinhoCombos(data.espetinhoCombos || []);
@@ -461,6 +478,24 @@ export const MenuProvider = ({ children }) => {
     }
   };
 
+  // Função para atualizar configurações do site
+  const updateSiteConfig = async (logoImage, backgroundImage, address, openingHours, tagline, logoSize) => {
+    try {
+      await firebaseUpdateSiteConfig(logoImage, backgroundImage, address, openingHours, tagline, logoSize);
+      setLogoImage(logoImage || '/logo-arretado.png');
+      setBackgroundImage(backgroundImage || '/hero-arretado.jpg');
+      setAddress(address || 'Terezinha Nunes');
+      setOpeningHours(openingHours || '15:00 - 23:00');
+      setTagline(tagline || 'Sabores autênticos que conquistam corações');
+      setLogoSize(Number(logoSize || 720));
+      setLastUpdate(new Date(data.lastUpdate).getTime());
+      console.log('MenuContext: Configurações do site salvas no Firebase com sucesso');
+    } catch (error) {
+      console.error('MenuContext: Erro ao salvar configurações do site:', error);
+      throw error;
+    }
+  };
+
   // Função para atualizar combos espetinho
   const updateEspetinhoCombos = async (newCombos) => {
     try {
@@ -513,6 +548,10 @@ export const MenuProvider = ({ children }) => {
         setPixKey(firebaseData.pixKey || '');
         setPixName(firebaseData.pixName || '');
         setWhatsappNumber(firebaseData.whatsappNumber || '');
+        setLogoImage(firebaseData.logoImage || '/logo-arretado.png');
+        setBackgroundImage(firebaseData.backgroundImage || '/hero-arretado.jpg');
+        setAddress(firebaseData.address || 'Terezinha Nunes');
+        setOpeningHours(firebaseData.openingHours || '15:00 - 23:00');
         setDeliveryFees(normalizeDeliveryFees(firebaseData.deliveryFees));
         setAddOns(firebaseData.addOns || []);
         setEspetinhoCombos(firebaseData.espetinhoCombos || []);
@@ -573,6 +612,12 @@ export const MenuProvider = ({ children }) => {
       addOns,
       espetinhoCombos,
       categories,
+      logoImage,
+      backgroundImage,
+      address,
+      openingHours,
+      tagline,
+      logoSize,
       isLoading,
       isSaving,
       lastUpdate,
@@ -587,6 +632,7 @@ export const MenuProvider = ({ children }) => {
       updateAddOns,
       updateEspetinhoCombos,
       updateCategories,
+      updateSiteConfig,
       login,
       logout,
       forceRefresh,

@@ -7,7 +7,7 @@ import DailyOfferModal from './DailyOfferModal';
 import { ShoppingCart, Search, MapPin, Clock, Star, Plus } from 'lucide-react';
 
 const CustomerView = () => {
-  const { products, dailyOffer, categories, espetinhoCombos } = useMenu();
+  const { products, dailyOffer, categories, espetinhoCombos, logoImage, backgroundImage, address, openingHours, tagline, logoSize } = useMenu();
   const { isCartOpen, setIsCartOpen, getTotalItems, addToCart } = useCart();
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [offerClosedThisSession, setOfferClosedThisSession] = useState(false);
@@ -80,19 +80,24 @@ const CustomerView = () => {
   return (
     <div className="customer-view">
       {/* Hero Section */}
-      <section className="hero-section">
+      <section className="hero-section" style={{ backgroundImage: `url('${backgroundImage}')`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
         <div className="hero-content">
-          <img src="/logo-arretado.png" alt="Logo Arretado Burger" className="hero-logo" style={{ maxWidth: '720px', width: '100%', height: 'auto', margin: '0 auto', display: 'block' }} />
-          <p className="hero-subtitle">Sabores autênticos que conquistam corações</p>
+          <img
+            src={logoImage}
+            alt="Logo"
+            className="hero-logo"
+            style={{ maxWidth: `${logoSize}px`, width: '100%', height: 'auto', margin: '0 auto', display: 'block' }}
+          />
+          <p className="hero-subtitle">{tagline}</p>
           
           <div className="restaurant-info">
             <div className="info-item">
               <MapPin size={16} />
-              <span>Terezinha Nunes</span>
+              <span>{address}</span>
             </div>
             <div className="info-item">
               <Clock size={16} />
-              <span>15:00 - 23:00</span>
+              <span>{openingHours}</span>
             </div>
           </div>
 

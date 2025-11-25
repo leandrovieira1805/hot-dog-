@@ -19,6 +19,8 @@ const AdminPanel = () => {
     backgroundImage,
     address,
     openingHours,
+    tagline,
+    logoSize,
     lastUpdate,
     isSaving,
     addProduct, 
@@ -74,6 +76,8 @@ const AdminPanel = () => {
   const [localBackgroundImage, setLocalBackgroundImage] = useState(backgroundImage || '/hero-arretado.jpg');
   const [localAddress, setLocalAddress] = useState(address || 'Terezinha Nunes');
   const [localOpeningHours, setLocalOpeningHours] = useState(openingHours || '15:00 - 23:00');
+  const [localTagline, setLocalTagline] = useState(tagline || 'Sabores autênticos que conquistam corações');
+  const [localLogoSize, setLocalLogoSize] = useState(logoSize || 720);
 
   // Sincronizar com o contexto
   useEffect(() => {
@@ -127,27 +131,42 @@ const AdminPanel = () => {
     setLocalOpeningHours(openingHours || '15:00 - 23:00');
   }, [openingHours]);
 
+  useEffect(() => {
+    setLocalTagline(tagline || 'Sabores autênticos que conquistam corações');
+  }, [tagline]);
+
+  useEffect(() => {
+    setLocalLogoSize(logoSize || 720);
+  }, [logoSize]);
+
   // Salvar configurações do site com debounce
-  const saveSiteConfigDebounced = (logo, bg, addr, hours) => {
+  const saveSiteConfigDebounced = (logo, bg, addr, hours, tl, size) => {
     if (window.siteConfigTimeout) clearTimeout(window.siteConfigTimeout);
     window.siteConfigTimeout = setTimeout(() => {
-      updateSiteConfig(logo, bg, addr, hours);
+      updateSiteConfig(logo, bg, addr, hours, tl, size);
     }, 500);
   };
 
   const handleSiteConfigChange = (field, value) => {
     if (field === 'logo') {
       setLocalLogoImage(value);
-      saveSiteConfigDebounced(value, localBackgroundImage, localAddress, localOpeningHours);
+      saveSiteConfigDebounced(value, localBackgroundImage, localAddress, localOpeningHours, localTagline, localLogoSize);
     } else if (field === 'background') {
       setLocalBackgroundImage(value);
-      saveSiteConfigDebounced(localLogoImage, value, localAddress, localOpeningHours);
+      saveSiteConfigDebounced(localLogoImage, value, localAddress, localOpeningHours, localTagline, localLogoSize);
     } else if (field === 'address') {
       setLocalAddress(value);
-      saveSiteConfigDebounced(localLogoImage, localBackgroundImage, value, localOpeningHours);
+      saveSiteConfigDebounced(localLogoImage, localBackgroundImage, value, localOpeningHours, localTagline, localLogoSize);
     } else if (field === 'hours') {
       setLocalOpeningHours(value);
-      saveSiteConfigDebounced(localLogoImage, localBackgroundImage, localAddress, value);
+      saveSiteConfigDebounced(localLogoImage, localBackgroundImage, localAddress, value, localTagline, localLogoSize);
+    } else if (field === 'tagline') {
+      setLocalTagline(value);
+      saveSiteConfigDebounced(localLogoImage, localBackgroundImage, localAddress, localOpeningHours, value, localLogoSize);
+    } else if (field === 'logoSize') {
+      const numeric = Number(value) || 0;
+      setLocalLogoSize(numeric);
+      saveSiteConfigDebounced(localLogoImage, localBackgroundImage, localAddress, localOpeningHours, localTagline, numeric);
     }
   };
 
@@ -1250,7 +1269,7 @@ const AdminPanel = () => {
                       src={localLogoImage} 
                       alt="Logo Preview" 
                       style={{ 
-                        maxWidth: '300px', 
+                        maxWidth: `${localLogoSize}px`,
                         width: '100%', 
                         height: 'auto', 
                         borderRadius: '8px',
@@ -1261,6 +1280,60 @@ const AdminPanel = () => {
                 )}
                 <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '0.5rem' }}>
                   A logo aparecerá no topo do site
+                </small>
+              </div>
+              <div className="form-group" style={{ marginBottom: '2rem' }}>
+                <label style={{ fontWeight: '700', fontSize: '1.1rem', marginBottom: '0.5rem', display: 'block' }}>
+                  📝 Frase abaixo da logo:
+                </label>
+                <input
+                  type="text"
+                  value={localTagline}
+                  onChange={(e) => handleSiteConfigChange('tagline', e.target.value)}
+                  placeholder="Ex: Sabores autênticos que conquistam corações"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '2px solid #dee2e6',
+                    borderRadius: '8px',
+                    fontSize: '1rem'
+                  }}
+                />
+                <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '0.5rem' }}>
+                  Essa frase aparecerá logo abaixo da sua logo no topo
+                </small>
+              </div>
+              <div className="form-group" style={{ marginBottom: '2rem' }}>
+                <label style={{ fontWeight: '700', fontSize: '1.1rem', marginBottom: '0.5rem', display: 'block' }}>
+                  📏 Tamanho da logo (largura máxima em pixels):
+                </label>
+                <input
+                  type="range"
+                  min="200"
+                  max="1000"
+                  step="10"
+                  value={localLogoSize}
+                  onChange={(e) => handleSiteConfigChange('logoSize', e.target.value)}
+                  style={{ width: '100%' }}
+                />
+                <input
+                  type="number"
+                  min="200"
+                  max="1000"
+                  step="10"
+                  value={localLogoSize}
+                  onChange={(e) => handleSiteConfigChange('logoSize', e.target.value)}
+                  style={{
+                    marginTop: '0.5rem',
+                    width: '120px',
+                    padding: '0.5rem',
+                    border: '2px solid #dee2e6',
+                    borderRadius: '8px',
+                    fontSize: '1rem'
+                  }}
+                />
+                <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '0.5rem' }}>
+                  Ajuste para deixar a logo do tamanho ideal (preview acima).
                 </small>
               </div>
 

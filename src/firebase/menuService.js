@@ -360,6 +360,27 @@ export const updateCategories = async (categories) => {
   }
 };
 
+// Atualizar configurações do site (logo, fundo, endereço, horário, frase, tamanho)
+export const updateSiteConfig = async (logoImage, backgroundImage, address, openingHours, tagline, logoSize) => {
+  try {
+    const configRef = doc(db, 'menu', MENU_CONFIG_DOC_ID);
+    await updateDoc(configRef, {
+      logoImage: logoImage || '/logo-arretado.png',
+      backgroundImage: backgroundImage || '/hero-arretado.jpg',
+      address: address || 'Terezinha Nunes',
+      openingHours: openingHours || '15:00 - 23:00',
+      tagline: tagline || 'Sabores autênticos que conquistam corações',
+      logoSize: Number(logoSize || 720),
+      lastUpdate: new Date().toISOString()
+    });
+    console.log('Firebase: Configurações do site atualizadas');
+    return true;
+  } catch (error) {
+    console.error('Firebase: Erro ao atualizar configurações do site:', error);
+    throw error;
+  }
+};
+
 // Função para limpar todos os dados (nova estrutura)
 export const clearAllData = async () => {
   try {
@@ -504,4 +525,4 @@ export const subscribeToMenuChanges = (callback) => {
       productsUnsubscribe();
     }
   };
-}; 
+};
