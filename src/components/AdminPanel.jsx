@@ -419,7 +419,7 @@ const AdminPanel = () => {
       </div>
 
       {/* Cadastro Pix */}
-      <div className="pix-config" style={{background:'#232323',padding:'1.5rem',borderRadius:'12px',margin:'1.5rem 0',maxWidth:420}}>
+      <div className="pix-config" style={{background:'#232323',padding:'1.5rem',borderRadius:'12px',margin:'1.5rem auto',maxWidth:420,width:'100%'}}>
         <h3 style={{color:'#fff',marginBottom:'1rem'}}>Configurar Pix</h3>
         <div className="form-group">
           <label style={{color:'#fff'}}>Chave Pix:</label>
@@ -1116,7 +1116,7 @@ const AdminPanel = () => {
       </div>
       
       {/* Status e Botões */}
-      <div style={{marginTop:'2rem', padding:'1rem', background:'#232323', borderRadius:'12px', textAlign:'center'}}>
+      <div style={{marginTop:'2rem', padding:'1rem', background:'#232323', borderRadius:'12px', textAlign:'center', width:'100%', maxWidth:'1200px', marginLeft:'auto', marginRight:'auto'}}>
         {isSaving && (
           <div style={{marginBottom:'15px', padding:'10px', background:'#2196F3', color:'white', borderRadius:'8px', fontSize:'14px'}}>
             💾 Salvando mudanças no servidor...

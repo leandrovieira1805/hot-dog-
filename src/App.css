@@ -928,6 +928,10 @@ input::placeholder, textarea::placeholder {
 .admin-panel {
   min-height: 100vh;
   background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .admin-header {
@@ -938,11 +942,24 @@ input::placeholder, textarea::placeholder {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .admin-header h1 {
   font-size: 1.75rem;
   font-weight: 800;
+  text-align: center;
+  flex: 1;
+}
+
+.admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .logout-btn {
@@ -970,6 +987,11 @@ input::placeholder, textarea::placeholder {
   display: flex;
   border-bottom: 1px solid #f1f5f9;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .tab-btn {
@@ -997,8 +1019,12 @@ input::placeholder, textarea::placeholder {
 
 .admin-content {
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .section-header {
@@ -1006,6 +1032,9 @@ input::placeholder, textarea::placeholder {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2.5rem;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .section-header h2 {
@@ -1040,6 +1069,8 @@ input::placeholder, textarea::placeholder {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1.5rem;
+  width: 100%;
+  justify-items: center;
 }
 
 .admin-product-card {
@@ -1243,6 +1274,28 @@ input::placeholder, textarea::placeholder {
   .section-header h2 {
     font-size: 1.5rem;
   }
+  
+  /* Admin Panel Tablet */
+  .admin-header {
+    padding: 1.5rem;
+  }
+  
+  .admin-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .admin-content {
+    padding: 1.5rem;
+  }
+  
+  .admin-tabs {
+    justify-content: center;
+  }
+  
+  .tab-btn {
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 600px) {
@@ -1272,6 +1325,84 @@ input::placeholder, textarea::placeholder {
     margin-left: auto;
     margin-right: auto;
   }
+  
+  /* Admin Panel Mobile */
+  .admin-header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .admin-header h1 {
+    font-size: 1.25rem;
+    width: 100%;
+  }
+  
+  .admin-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    align-items: center;
+  }
+  
+  .admin-tabs {
+    flex-direction: row;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding: 0 0.5rem;
+  }
+  
+  .tab-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  
+  .admin-content {
+    padding: 1rem;
+    width: 100%;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .section-header h2 {
+    font-size: 1.5rem;
+    width: 100%;
+  }
+  
+  .add-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .products-list,
+  .categories-list,
+  .combos-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .admin-product-card {
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .pix-config {
+    width: 100%;
+    max-width: 100%;
+    padding: 1rem;
+  }
+}
 /* ===== LOGO DESTAQUE ===== */
 .hero-logo {
   display: block;
