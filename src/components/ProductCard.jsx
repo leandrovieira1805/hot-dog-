@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useMenu } from '../context/MenuContext';
 
 // Dentro do componente: ProductCard
+// Dentro do componente ProductCard: exibir a descrição no card
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
   const { addOns } = useMenu();
@@ -99,8 +100,12 @@ const ProductCard = ({ product }) => {
         
         <div className="product-content">
           <h3 className="product-title">{product.name}</h3>
-          {product.description && (
-            <p className="product-description">{product.description}</p>
+          {product.description ? (
+            <p className="product-description" title={product.description}>{product.description}</p>
+          ) : (
+            <p className="product-description" style={{ color: '#cbd5e1', fontStyle: 'italic' }}>
+              Sem descrição
+            </p>
           )}
           <div className="product-footer">
             <div className="price-container">

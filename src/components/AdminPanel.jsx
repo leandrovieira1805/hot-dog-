@@ -626,13 +626,17 @@ const AdminPanel = () => {
                       />
                     </div>
                     <div className="form-group">
-                      <label>Descrição:</label>
+                      <label>Descrição do Produto:</label>
                       <textarea
-                        placeholder="Ex.: pão, salsicha, milho, ervilha, batata palha..."
+                        placeholder="Ex.: pão, salsicha, milho, ervilha, batata palha, queijo ralado..."
                         value={productForm.description}
                         onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                        rows={3}
+                        rows={4}
+                        style={{ resize: 'vertical' }}
                       />
+                      <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '4px', display: 'block' }}>
+                        A descrição aparecerá no card do produto para os clientes
+                      </small>
                     </div>
 
                     <div className="form-group">
