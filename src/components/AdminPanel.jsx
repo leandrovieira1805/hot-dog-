@@ -352,10 +352,17 @@ const AdminPanel = () => {
     const offerData = {
       id: dailyOffer ? dailyOffer.id : Date.now(), // Mantém ID ao editar
       name: offerForm.name,
-      description: offerForm.description,
+      description: offerForm.description || '', // Garantir que sempre tenha descrição (mesmo que vazia)
       price: parseFloat(offerForm.price),
       image: offerForm.image
     };
+    
+    // Log para debug
+    console.log('Salvando oferta do dia:', {
+      name: offerData.name,
+      description: offerData.description,
+      hasDescription: !!offerData.description && offerData.description.trim().length > 0
+    });
 
     setOffer(offerData);
     setOfferForm({ name: '', description: '', price: '', image: '' });
@@ -997,7 +1004,24 @@ const AdminPanel = () => {
                   <img src={dailyOffer.image} alt={dailyOffer.name} />
                   <div className="offer-details">
                     <h3>{dailyOffer.name}</h3>
-                    <p>{dailyOffer.description}</p>
+                    {dailyOffer.description && dailyOffer.description.trim() ? (
+                      <p style={{ 
+                        color: '#475569', 
+                        marginTop: '0.5rem', 
+                        marginBottom: '1rem',
+                        padding: '0.75rem',
+                        background: '#f8f9fa',
+                        borderRadius: '8px',
+                        borderLeft: '3px solid #ff6b6b',
+                        lineHeight: '1.6'
+                      }}>
+                        {dailyOffer.description}
+                      </p>
+                    ) : (
+                      <p style={{ color: '#cbd5e1', fontStyle: 'italic', marginTop: '0.5rem' }}>
+                        Sem descrição
+                      </p>
+                    )}
                     <p className="offer-price">R$ {dailyOffer.price.toFixed(2)}</p>
                   </div>
                   <button 
@@ -1032,22 +1056,36 @@ const AdminPanel = () => {
 
                   <form onSubmit={handleOfferSubmit} className="offer-form">
                     <div className="form-group">
-                      <label>Nome da Oferta:</label>
+                      <label>Nome da Oferta: <span style={{color: '#ff6b6b'}}>*</span></label>
                       <input
                         type="text"
                         value={offerForm.name}
                         onChange={(e) => setOfferForm({...offerForm, name: e.target.value})}
                         required
+                        placeholder="Ex: Oferta Especial do Dia"
                       />
                     </div>
 
-                    <div className="form-group">
-                      <label>Descrição:</label>
+                    <div className="form-group" style={{ marginTop: '1rem', padding: '1rem', background: '#f8f9fa', borderRadius: '12px', border: '2px solid #e9ecef' }}>
+                      <label style={{ color: '#1a1a1a', fontWeight: '700', fontSize: '1.05rem' }}>
+                        📝 Descrição da Oferta:
+                      </label>
                       <textarea
-                        value={offerForm.description}
+                        placeholder="Ex.: pão, salsicha, milho, ervilha, batata palha, queijo ralado, molho especial..."
+                        value={offerForm.description || ''}
                         onChange={(e) => setOfferForm({...offerForm, description: e.target.value})}
+                        rows={4}
+                        style={{ 
+                          resize: 'vertical',
+                          minHeight: '100px',
+                          border: '2px solid #dee2e6',
+                          fontSize: '0.95rem'
+                        }}
                         required
                       />
+                      <small style={{ color: '#28a745', fontSize: '0.85rem', marginTop: '6px', display: 'block', fontWeight: '500' }}>
+                        ✓ A descrição aparecerá no modal da oferta para os clientes visualizarem
+                      </small>
                     </div>
 
                     <div className="form-group">

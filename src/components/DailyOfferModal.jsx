@@ -28,7 +28,9 @@ const DailyOfferModal = ({ offer, onClose }) => {
 
           <div className="offer-info">
             <h3>{offer.name}</h3>
-            <p className="offer-description">{offer.description}</p>
+            {offer.description && offer.description.trim() ? (
+              <p className="offer-description">{offer.description}</p>
+            ) : null}
             <p className="offer-price">R$ {offer.price.toFixed(2)}</p>
           </div>
 
