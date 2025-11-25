@@ -1122,6 +1122,9 @@ input::placeholder, textarea::placeholder {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  padding: 1.5rem;
+  max-height: calc(90vh - 100px);
+  overflow-y: auto;
 }
 
 .save-btn {

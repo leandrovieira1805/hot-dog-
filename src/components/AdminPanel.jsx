@@ -616,26 +616,36 @@ const AdminPanel = () => {
                         <img src={productForm.image} alt="Preview" style={{ maxWidth: '120px', marginTop: '8px', borderRadius: '8px' }} />
                       )}
                     </div>
+                    
                     <div className="form-group">
-                      <label>Nome do Produto:</label>
+                      <label>Nome do Produto: <span style={{color: '#ff6b6b'}}>*</span></label>
                       <input
                         type="text"
                         value={productForm.name}
                         onChange={(e) => setProductForm({...productForm, name: e.target.value})}
                         required
+                        placeholder="Ex: Hot Dog Especial"
                       />
                     </div>
-                    <div className="form-group">
-                      <label>Descrição do Produto:</label>
+                    
+                    <div className="form-group" style={{ marginTop: '1rem', padding: '1rem', background: '#f8f9fa', borderRadius: '12px', border: '2px solid #e9ecef' }}>
+                      <label style={{ color: '#1a1a1a', fontWeight: '700', fontSize: '1.05rem' }}>
+                        📝 Descrição do Produto:
+                      </label>
                       <textarea
-                        placeholder="Ex.: pão, salsicha, milho, ervilha, batata palha, queijo ralado..."
-                        value={productForm.description}
+                        placeholder="Ex.: pão, salsicha, milho, ervilha, batata palha, queijo ralado, molho especial..."
+                        value={productForm.description || ''}
                         onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                         rows={4}
-                        style={{ resize: 'vertical' }}
+                        style={{ 
+                          resize: 'vertical',
+                          minHeight: '100px',
+                          border: '2px solid #dee2e6',
+                          fontSize: '0.95rem'
+                        }}
                       />
-                      <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '4px', display: 'block' }}>
-                        A descrição aparecerá no card do produto para os clientes
+                      <small style={{ color: '#28a745', fontSize: '0.85rem', marginTop: '6px', display: 'block', fontWeight: '500' }}>
+                        ✓ A descrição aparecerá no card do produto para os clientes visualizarem
                       </small>
                     </div>
 
