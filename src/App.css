@@ -381,6 +381,7 @@ input::placeholder, textarea::placeholder {
   min-height: 2.5rem;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1536,60 +1537,29 @@ input::placeholder, textarea::placeholder {
     justify-content: center;
   }
 
-  .section-header h2 {
-    font-size: 1.5rem;
-    text-align: center;
-  }
-
-  .product-title {
-    font-size: 1rem;
-  }
-
-  .product-price {
-    font-size: 1.2rem;
-  }
-
-  .hero-title {
-    font-size: 1.8rem;
-    text-align: center;
-    margin-top: 0.5rem;
-  }
-
-  .category-tab {
-    font-size: 0.9rem;
-    padding: 0.6rem 1rem;
-  }
+.section-header h2 {
+  font-size: 1.5rem;
+  text-align: center;
 }
 
-  .cart-item {
-    flex-direction: column;
-    text-align: center;
-    gap: 1rem;
-  }
+.product-title {
+  font-size: 1rem;
+}
 
-  .cart-item-controls {
-    justify-content: center;
-  }
+.product-price {
+  font-size: 1.2rem;
+}
 
-  .section-header h2 {
-    font-size: 1.75rem;
-  }
+.hero-title {
+  font-size: 1.8rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
 
-  .product-title {
-    font-size: 1.125rem;
-  }
-
-  .product-price {
-    font-size: 1.25rem;
-  }
-
-  .hero-title {
-    font-size: 2rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1rem;
-  }
+.category-tab {
+  font-size: 0.9rem;
+  padding: 0.6rem 1rem;
+}
 }
 
 .header {
@@ -1696,13 +1666,13 @@ input::placeholder, textarea::placeholder {
   color: #aaa;
 }
 
-/* Inputs do bloco de configurações (admin) escuros para melhor contraste */
+/* Inputs do bloco de configurações (admin) - seguem o card claro */
 .pix-config input,
 .pix-config select,
 .pix-config textarea {
-  background: #232323;
-  color: #fff;
-  border: 1px solid #333;
+  background: #f9fafb;
+  color: #111827;
+  border: 1px solid #e5e7eb;
 }
 
 .checkout-modal-content input:focus,
@@ -1740,6 +1710,51 @@ input::placeholder, textarea::placeholder {
   opacity: 0.6;
   background: #1a1a1a;
   border: 1px solid #ff6b6b;
+}
+
+/* ===== BLOCO DE CONFIGURAÇÕES (PIX / TAXAS / ADICIONAIS) ===== */
+.pix-config {
+  background: #ffffff;
+  padding: 1.75rem 2rem;
+  border-radius: 16px;
+  margin: 2rem auto;
+  width: 100%;
+  max-width: 980px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+  gap: 1.75rem;
+}
+
+.pix-config h3 {
+  grid-column: 1 / -1;
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.pix-config .form-group {
+  margin-bottom: 0.75rem;
+}
+
+.pix-config small {
+  font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .pix-config {
+    grid-template-columns: 1fr;
+    padding: 1.5rem 1.25rem;
+    margin: 1.5rem auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .pix-config {
+    padding: 1.25rem 1rem;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
+  }
 }
 
 .customization-modal-overlay {

@@ -494,22 +494,22 @@ const AdminPanel = () => {
       </div>
 
       {/* Cadastro Pix */}
-      <div className="pix-config" style={{background:'#232323',padding:'1.5rem',borderRadius:'12px',margin:'1.5rem auto',maxWidth:420,width:'100%'}}>
-        <h3 style={{color:'#fff',marginBottom:'1rem'}}>Configurar Pix</h3>
+      <div className="pix-config">
+        <h3>Configurar Pix</h3>
         <div className="form-group">
-          <label style={{color:'#fff'}}>Chave Pix:</label>
-          <input type="text" value={localPixKey} onChange={e => handlePixChange(e.target.value, localPixName)} style={{width:'100%'}} />
+          <label>Chave Pix:</label>
+          <input type="text" value={localPixKey} onChange={e => handlePixChange(e.target.value, localPixName)} />
         </div>
         <div className="form-group">
-          <label style={{color:'#fff'}}>Nome do Recebedor:</label>
-          <input type="text" value={localPixName} onChange={e => handlePixChange(localPixKey, e.target.value)} style={{width:'100%'}} />
+          <label>Nome do Recebedor:</label>
+          <input type="text" value={localPixName} onChange={e => handlePixChange(localPixKey, e.target.value)} />
         </div>
         <div className="form-group">
-          <label style={{color:'#fff'}}>WhatsApp (apenas números, com DDI):</label>
-          <input type="text" value={localWhatsapp} placeholder="5587999999999" onChange={e => handleWhatsappChange(e.target.value)} style={{width:'100%'}} />
+          <label>WhatsApp (apenas números, com DDI):</label>
+          <input type="text" value={localWhatsapp} placeholder="5587999999999" onChange={e => handleWhatsappChange(e.target.value)} />
         </div>
-        <div className="form-group" style={{marginTop:'1rem'}}>
-          <label style={{color:'#fff', display:'block', marginBottom:'0.5rem'}}>Localidades e Taxas de Entrega</label>
+        <div className="form-group">
+          <label>Localidades e Taxas de Entrega</label>
           {(localFees || []).map((loc, idx) => (
             <div key={idx} style={{display:'flex', gap:'8px', alignItems:'center', marginBottom:'8px'}}>
               <input 
@@ -529,19 +529,17 @@ const AdminPanel = () => {
               <button 
                 type="button"
                 onClick={() => handleRemoveLocation(idx)}
-                style={{background:'#dc2626', color:'#fff', border:'none', padding:'0.6rem 0.8rem', borderRadius:'8px', cursor:'pointer'}}
               >Remover</button>
             </div>
           ))}
           <button 
             type="button"
             onClick={handleAddLocation}
-            style={{marginTop:'6px', background:'#10b981', color:'#fff', border:'none', padding:'0.6rem 0.8rem', borderRadius:'8px', cursor:'pointer'}}
           >Adicionar Localidade</button>
         </div>
         
-        <div className="form-group" style={{marginTop:'1.5rem'}}>
-          <label style={{color:'#fff', display:'block', marginBottom:'0.5rem'}}>Adicionais para Hambúrgueres Artesanais</label>
+        <div className="form-group">
+          <label>Adicionais para Hambúrgueres Artesanais</label>
           {(localAddOns || []).map((addOn, idx) => (
             <div key={idx} style={{display:'flex', gap:'8px', alignItems:'center', marginBottom:'8px'}}>
               <input 
@@ -561,14 +559,12 @@ const AdminPanel = () => {
               <button 
                 type="button"
                 onClick={() => handleRemoveAddOn(idx)}
-                style={{background:'#dc2626', color:'#fff', border:'none', padding:'0.6rem 0.8rem', borderRadius:'8px', cursor:'pointer'}}
               >Remover</button>
             </div>
           ))}
           <button 
             type="button"
             onClick={handleAddAddOn}
-            style={{marginTop:'6px', background:'#3b82f6', color:'#fff', border:'none', padding:'0.6rem 0.8rem', borderRadius:'8px', cursor:'pointer'}}
           >Adicionar Adicional</button>
         </div>
       </div>
