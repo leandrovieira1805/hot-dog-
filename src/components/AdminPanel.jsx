@@ -448,7 +448,7 @@ const AdminPanel = () => {
   return (
     <div className="admin-panel">
       <div className="admin-header">
-        <h1>Painel Administrativo</h1>
+        <h1>Administrativo</h1>
         <div className="admin-actions">
           <div style={{ 
             display: 'flex', 
@@ -494,7 +494,7 @@ const AdminPanel = () => {
       </div>
 
       {/* Cadastro Pix */}
-      <div className="pix-config" style={{background:'#232323',padding:'1.5rem',borderRadius:'12px',margin:'1.5rem auto',width:'100%'}}>
+      <div className="pix-config" style={{background:'#232323',padding:'1.5rem',borderRadius:'12px',margin:'1.5rem auto'}>
         <h3 style={{color:'#fff',marginBottom:'1rem'}}>Configurar Pix</h3>
         <div className="form-group">
           <label style={{color:'#fff'}}>Chave Pix:</label>
