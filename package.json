@@ -10,8 +10,7 @@
     "preview": "vite preview",
     "server": "node server.js",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
-    "start": "npm run build && node server.js",
-    "postinstall": "npm run build"
+    "start": "node server.js"
   },
   "dependencies": {
     "concurrently": "^8.2.2",
